@@ -15,3 +15,7 @@ For MPL there will be multiple use cases which are defined as follows:
 4. List of Players in the team
 5. Live Auction Bidding
 6. Auction History of the Player
+
+
+Database Schema Link:
+https://www.drawdb.app/editor?shareId=fff80bbe1f66d064bcc91df6a178c573
