@@ -1,0 +1,117 @@
+Table player_profile [headercolor: #175e7a] {
+	id bigint [ pk, increment, not null ]
+	player_name text [ not null ]
+	player_id text [ not null, unique ]
+	player_type text [ not null ]
+	player_contact_number text [ not null ]
+	player_email text [ not null ]
+	player_photo_url text [ not null ]
+	player_role text [ not null ]
+
+	indexes {
+		(id) [ name: 'player_profile_index_0' ]
+	}
+}
+
+Table player_batting_stats [headercolor: #175e7a] {
+	id integer [ pk, increment, not null ]
+	player_id bigint [ not null ]
+	runs_scored integer [ not null ]
+	average decimal [ not null ]
+	strike_rate decimal [ not null ]
+	best_score integer [ not null ]
+	boundaries integer [ not null ]
+	sixes integer [ not null ]
+}
+
+Table player_bowling_stats [headercolor: #175e7a] {
+	id integer [ pk, increment, not null ]
+	player_id integer [ not null ]
+	wickets_taken integer [ not null ]
+	average integer [ not null ]
+	economy integer
+	strike_rate integer
+	best_figures text
+}
+
+Table player_fielding_stats [headercolor: #175e7a] {
+	id integer [ pk, increment, not null ]
+	player_id integer [ not null ]
+	catches_taken integer [ not null ]
+	run_out_done  [ not null ]
+}
+
+Table teams [headercolor: #175e7a] {
+	id integer [ pk, increment, not null ]
+	team_name text [ not null ]
+	owner_name text [ not null ]
+	purse_remaining text [ not null ]
+	players_count integer [ not null ]
+	remaining_trade_count integer [ not null ]
+}
+
+Table player_auction_status [headercolor: #175e7a] {
+	id integer [ pk, increment, not null ]
+	player_id integer [ not null ]
+	team_id integer [ not null ]
+	sold_amount integer [ not null ]
+	player_status text
+}
+
+Table tournament_fixtures [headercolor: #175e7a] {
+	id integer [ pk, increment, not null ]
+	first_team integer [ not null ]
+	second_team integer [ not null ]
+	date date [ not null ]
+	venue text [ not null ]
+	winner text [ not null ]
+	result_summary text [ not null ]
+	man_of_the_match integer [ not null ]
+	match_type text [ not null ]
+}
+
+Table points_table [headercolor: #175e7a] {
+	id integer [ pk, increment, not null ]
+	team_id integer [ not null ]
+	matches_played integer [ not null ]
+	matches_won integer [ not null ]
+	matches_lost integer [ not null ]
+	points integer [ not null ]
+	"net_run-rate" decimal [ not null ]
+}
+
+Ref fk_player_profile_id_player_batting_stats {
+	player_profile.id - player_batting_stats.player_id [ delete: no action, update: no action ]
+}
+
+Ref fk_player_bowling_stats_player_id_player_profile {
+	player_bowling_stats.player_id - player_profile.id [ delete: no action, update: no action ]
+}
+
+Ref fk_player_fielding_stats_player_id_player_profile {
+	player_fielding_stats.player_id - player_profile.id [ delete: no action, update: no action ]
+}
+
+Ref fk_player_auction_status_player_id_player_profile {
+	player_auction_status.player_id - player_profile.id [ delete: no action, update: no action ]
+}
+
+Ref fk_teams_id_player_auction_status {
+	teams.id < player_auction_status.team_id [ delete: no action, update: no action ]
+}
+
+Ref fk_tournament_fixtures_first_team_teams {
+	tournament_fixtures.first_team > teams.id [ delete: no action, update: no action ]
+}
+
+Ref fk_tournament_fixtures_second_team_teams {
+	tournament_fixtures.second_team > teams.id [ delete: no action, update: no action ]
+}
+
+Ref fk_tournament_fixtures_man_of_the_match_player_profile {
+	tournament_fixtures.man_of_the_match > player_profile.id [ delete: no action, update: no action ]
+}
+
+Ref fk_points_table_team_id_teams {
+	points_table.team_id - teams.id [ delete: no action, update: no action ]
+}
