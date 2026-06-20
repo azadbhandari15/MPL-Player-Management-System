@@ -18,4 +18,4 @@ For MPL there will be multiple use cases which are defined as follows:
 
 
 Database Schema Link:
-https://www.drawdb.app/editor?shareId=fff80bbe1f66d064bcc91df6a178c573
+[https://www.drawdb.app/editor?shareId=fff80bbe1f66d064bcc91df6a178c573](https://www.drawdb.app/editor/diagrams/16ee1234-dd37-4e72-b9e7-c4ccd5909c2c)
