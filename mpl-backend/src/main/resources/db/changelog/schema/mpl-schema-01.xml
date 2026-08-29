@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="[MPL-1]Create Player Registration Entry" author="Azad">
+        <preConditions>
+            <not>
+                <tableExists tableName="player_registration_details"/>
+            </not>
+        </preConditions>
+        <createTable tableName="player_registration_details">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="player_name" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="contact_number" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="player_email" type="TEXT"/>
+            <column name="player_type" type="TEXT">
+            </column>
+            <column name="cric_heros_profile" type="TEXT">
+            </column>
+
+            <column name="registration_status" type="TEXT"/>
+            <column name="player_id" type="TEXT"/>
+            <column name="image_name" type="TEXT"/>
+            <column name="image_type" type="TEXT"/>
+            <column name="image_data" type="BYTEA"/>
+            <column name="registered_date" type="TIMESTAMP"/>
+            <column name="updated_date" type="TIMESTAMP"/>
+        </createTable>
+        <comment>Create Hostel Table</comment>
+    </changeSet>
+
+
+
+
+
+
+
+</databaseChangeLog>

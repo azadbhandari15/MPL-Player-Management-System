@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <include file="/schema/mpl-schema-01.xml" relativeToChangelogFile="true"/>
+<!--    <include file="/schema/hostel-service-02.xml" relativeToChangelogFile="true"/>-->
+<!--    <include file="/schema/hostel-service-03.xml" relativeToChangelogFile="true"/>-->
+    <!--    <include file="/schema/library-service-04.xml" relativeToChangelogFile="true"/>-->
+    <!--    <include file="/schema/library-service-05.xml" relativeToChangelogFile="true"/>-->
+    <!--    <include file="/schema/library-service-06.xml" relativeToChangelogFile="true"/>-->
+    <!--    <include file="/schema/library-service-07.xml" relativeToChangelogFile="true"/>-->
+    <!--    <include file="/schema/library-service-08.xml" relativeToChangelogFile="true"/>-->
+    <!--    <include file="/schema/library-service-09.xml" relativeToChangelogFile="true"/>-->
+
+
+
+</databaseChangeLog>
