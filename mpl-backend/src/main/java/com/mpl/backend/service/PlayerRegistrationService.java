@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -65,8 +66,26 @@ public class PlayerRegistrationService {
 
     }
 
+    public List<PlayerRegistrationResponseDto> retrievePlayerDetails(String keyword){
+        List<PlayerRegistrationEntity> playerRegistrationEntities = playerRegistrationRepository.searchByKeyword(keyword);
+        return playerRegistrationEntities.stream().map(this::mapToPlayerRegistrationDto).toList();
+    }
+
     private String generatePlayerName(String playerName){
         String uuidString= UUID.randomUUID().toString().substring(0,6);
         return playerName.replace(" ","").toUpperCase()+uuidString.toUpperCase();
+    }
+
+    public PlayerRegistrationResponseDto mapToPlayerRegistrationDto(PlayerRegistrationEntity playerRegistrationEntity){
+        return PlayerRegistrationResponseDto.builder()
+                .playerName(playerRegistrationEntity.getPlayerName())
+                .playerEmail(playerRegistrationEntity.getPlayerEmail())
+                .contactNumber(playerRegistrationEntity.getContactNumber())
+                .playerType(playerRegistrationEntity.getPlayerType())
+                .cricHerosProfile(playerRegistrationEntity.getCricHerosProfile())
+                .registrationStatus(playerRegistrationEntity.getRegistrationStatus())
+                .playerId(playerRegistrationEntity.getPlayerId())
+                .imageUrl("/mpl/players/"+playerRegistrationEntity.getPlayerId()+"/image")
+                .build();
     }
 }

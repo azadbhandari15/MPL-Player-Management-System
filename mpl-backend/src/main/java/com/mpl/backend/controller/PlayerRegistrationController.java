@@ -8,8 +8,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 @RestController
-@RequestMapping("/mpl")
+@RequestMapping("/mpl/players")
 public class PlayerRegistrationController {
 
     private final PlayerRegistrationService playerRegistrationService;
@@ -20,7 +22,12 @@ public class PlayerRegistrationController {
 
     @PostMapping(value = "/register-player",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<PlayerRegistrationResponseDto> registerPlayerRegistration(@RequestPart("playerInfo") PlayerRegistrationRequestDto playerRegistrationRequestDto,
-                                                                                    @RequestPart("playerImage") MultipartFile multipartFile) throws Exception{
+                                                                                    @RequestPart(value = "playerImage",required = false) MultipartFile multipartFile) throws Exception{
         return ResponseEntity.ok(playerRegistrationService.registerMPLPlayer(playerRegistrationRequestDto,multipartFile));
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<PlayerRegistrationResponseDto>> retrievePlayerEntries(@RequestParam(value = "keyword") String keyword){
+        return ResponseEntity.ok(playerRegistrationService.retrievePlayerDetails(keyword));
     }
 }
