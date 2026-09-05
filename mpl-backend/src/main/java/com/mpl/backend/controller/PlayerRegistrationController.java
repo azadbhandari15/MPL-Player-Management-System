@@ -44,4 +44,9 @@ public class PlayerRegistrationController {
         PlayerRegistrationEntity playerRegistrationEntity = playerRegistrationService.retrievePlayerImage(playerId);
         return ResponseEntity.ok().contentType(MediaType.parseMediaType(playerRegistrationEntity.getImageType())).body(playerRegistrationEntity.getImageData());
     }
+
+    @GetMapping("/next-player")
+    public ResponseEntity<PlayerRegistrationResponseDto> findNextEligiblePlayer(){
+        return ResponseEntity.ok(playerRegistrationService.retrieveRandomPlayer());
+    }
 }
