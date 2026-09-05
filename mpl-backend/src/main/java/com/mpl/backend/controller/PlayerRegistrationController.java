@@ -2,6 +2,7 @@ package com.mpl.backend.controller;
 
 import com.mpl.backend.model.PlayerRegistrationRequestDto;
 import com.mpl.backend.model.PlayerRegistrationResponseDto;
+import com.mpl.backend.model.PlayerRegistrationUpdateRequestDto;
 import com.mpl.backend.service.PlayerRegistrationService;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -29,5 +30,11 @@ public class PlayerRegistrationController {
     @GetMapping("/search")
     public ResponseEntity<List<PlayerRegistrationResponseDto>> retrievePlayerEntries(@RequestParam(value = "keyword") String keyword){
         return ResponseEntity.ok(playerRegistrationService.retrievePlayerDetails(keyword));
+    }
+
+    @PutMapping("/update-player-registration-status")
+    public ResponseEntity<List<PlayerRegistrationResponseDto>> updatePlayerRegistrationStatus(@RequestBody PlayerRegistrationUpdateRequestDto playerRegistrationRequestDto){
+        return ResponseEntity.ok(playerRegistrationService.updatePlayerStatus(playerRegistrationRequestDto.getPlayerIds(),
+                playerRegistrationRequestDto.getPlayerRegistrationStatus()));
     }
 }
