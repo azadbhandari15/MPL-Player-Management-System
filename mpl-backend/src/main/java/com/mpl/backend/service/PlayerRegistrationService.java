@@ -85,6 +85,12 @@ public class PlayerRegistrationService {
         return playerRegistrationEntity;
     }
 
+    public PlayerRegistrationResponseDto retrieveRandomPlayer(){
+        return playerRegistrationRepository.findRandomEligiblePlayer(PlayerRegistrationStatus.ELIGIBLE_FOR_AUCTION.name())
+                .map(this::mapToPlayerRegistrationDto)
+                .orElseThrow(() -> new RuntimeException("No Eligible Players Are there for Auction"));
+    }
+
     public List<PlayerRegistrationResponseDto> retrievePlayerDetails(String keyword){
         List<PlayerRegistrationEntity> playerRegistrationEntities = playerRegistrationRepository.searchByKeyword(keyword);
         return playerRegistrationEntities.stream().map(this::mapToPlayerRegistrationDto).toList();

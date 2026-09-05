@@ -20,4 +20,8 @@ public interface PlayerRegistrationRepository extends JpaRepository<PlayerRegist
     List<PlayerRegistrationEntity> findPlayerIds(@Param("playerIds")List<String> playerId);
 
     Optional<PlayerRegistrationEntity> findByPlayerId(String playerId);
+
+    @Query(value = "SELECT * FROM player_registration_details where " +
+            "registration_status=:registrationStatus ORDER BY RANDOM() LIMIT 1 ",nativeQuery = true)
+    Optional<PlayerRegistrationEntity> findRandomEligiblePlayer(@Param("registrationStatus") String registrationStatus);
 }
