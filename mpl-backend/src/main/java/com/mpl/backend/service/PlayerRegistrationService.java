@@ -75,6 +75,16 @@ public class PlayerRegistrationService {
         return savedPlayerRegistrationEntity.stream().map(this::mapToPlayerRegistrationDto).toList();
     }
 
+    public PlayerRegistrationEntity retrievePlayerImage(String playerId){
+        PlayerRegistrationEntity playerRegistrationEntity = playerRegistrationRepository.findByPlayerId(playerId)
+                .orElseThrow(() -> new RuntimeException("Player Details Not Found"));
+        byte[] imageData = playerRegistrationEntity.getImageData();
+        if(imageData==null){
+            throw new RuntimeException("Image Details not found");
+        }
+        return playerRegistrationEntity;
+    }
+
     public List<PlayerRegistrationResponseDto> retrievePlayerDetails(String keyword){
         List<PlayerRegistrationEntity> playerRegistrationEntities = playerRegistrationRepository.searchByKeyword(keyword);
         return playerRegistrationEntities.stream().map(this::mapToPlayerRegistrationDto).toList();
