@@ -1,5 +1,6 @@
 package com.mpl.backend.controller;
 
+import com.mpl.backend.entity.PlayerRegistrationEntity;
 import com.mpl.backend.model.PlayerRegistrationRequestDto;
 import com.mpl.backend.model.PlayerRegistrationResponseDto;
 import com.mpl.backend.model.PlayerRegistrationUpdateRequestDto;
@@ -36,5 +37,11 @@ public class PlayerRegistrationController {
     public ResponseEntity<List<PlayerRegistrationResponseDto>> updatePlayerRegistrationStatus(@RequestBody PlayerRegistrationUpdateRequestDto playerRegistrationRequestDto){
         return ResponseEntity.ok(playerRegistrationService.updatePlayerStatus(playerRegistrationRequestDto.getPlayerIds(),
                 playerRegistrationRequestDto.getPlayerRegistrationStatus()));
+    }
+
+    @GetMapping("/{playerId}/image")
+    public ResponseEntity<byte[]> retrievePlayerImage(@PathVariable String playerId){
+        PlayerRegistrationEntity playerRegistrationEntity = playerRegistrationService.retrievePlayerImage(playerId);
+        return ResponseEntity.ok().contentType(MediaType.parseMediaType(playerRegistrationEntity.getImageType())).body(playerRegistrationEntity.getImageData());
     }
 }
