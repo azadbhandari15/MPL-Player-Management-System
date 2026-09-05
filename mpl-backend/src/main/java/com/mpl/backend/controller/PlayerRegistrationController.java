@@ -6,15 +6,19 @@ import com.mpl.backend.model.PlayerRegistrationResponseDto;
 import com.mpl.backend.model.PlayerRegistrationUpdateRequestDto;
 import com.mpl.backend.service.PlayerDetailsRetrievalService;
 import com.mpl.backend.service.PlayerRegistrationService;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.PagedModel;
 import org.springframework.data.web.config.SpringDataJackson3Configuration;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -60,5 +64,19 @@ public class PlayerRegistrationController {
     @GetMapping("/find-all-player")
     public ResponseEntity<PagedModel<PlayerRegistrationResponseDto>> retrieveAllPlayerDetails(@PageableDefault(page = 0,size = 20)Pageable pageable){
         return ResponseEntity.ok(new PagedModel<>(playerDetailsRetrievalService.findAllPlayers(pageable)));
+    }
+
+    @GetMapping("/find-all-player-export")
+    public ResponseEntity<InputStreamResource> downloadAllEligiblePlayers() throws IOException {
+        String fileName="mpl-registered-player.xlsx";
+        ByteArrayInputStream inputStream=playerDetailsRetrievalService.exportPlayerList();
+
+        HttpHeaders httpHeaders=new HttpHeaders();
+        httpHeaders.add("Content-Disposition","attachment; filename="+fileName);
+
+        return ResponseEntity.ok().headers(httpHeaders)
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(new InputStreamResource(inputStream));
+
     }
 }
