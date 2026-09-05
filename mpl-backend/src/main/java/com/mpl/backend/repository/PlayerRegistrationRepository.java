@@ -28,5 +28,6 @@ public interface PlayerRegistrationRepository extends JpaRepository<PlayerRegist
     Optional<PlayerRegistrationEntity> findRandomEligiblePlayer(@Param("registrationStatus") String registrationStatus);
 
     Page<PlayerRegistrationEntity> findByRegistrationStatus(PlayerRegistrationStatus playerRegistrationStatus, Pageable pageable);
+    List<PlayerRegistrationEntity> findByRegistrationStatus(PlayerRegistrationStatus playerRegistrationStatus);
 
 }
