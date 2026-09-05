@@ -13,4 +13,7 @@ public interface PlayerRegistrationRepository extends JpaRepository<PlayerRegist
             "WHERE LOWER(p.playerName) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
             "OR LOWER(p.playerId) LIKE LOWER(CONCAT('%', :keyword, '%'))")
     List<PlayerRegistrationEntity> searchByKeyword(@Param("keyword")String keyword);
+
+    @Query("SELECT p FROM PlayerRegistrationEntity p where p.playerId in :playerIds")
+    List<PlayerRegistrationEntity> findPlayerIds(@Param("playerIds")List<String> playerId);
 }

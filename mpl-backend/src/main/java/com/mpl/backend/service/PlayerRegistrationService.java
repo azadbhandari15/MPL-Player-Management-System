@@ -66,6 +66,15 @@ public class PlayerRegistrationService {
 
     }
 
+    public List<PlayerRegistrationResponseDto> updatePlayerStatus(List<String> playerId,PlayerRegistrationStatus playerRegistrationStatus){
+        List<PlayerRegistrationEntity> existingPlayerId = playerRegistrationRepository.findPlayerIds(playerId);
+        List<PlayerRegistrationEntity> updatedEntityList = existingPlayerId.stream()
+                .peek(player -> player.setRegistrationStatus(playerRegistrationStatus)).toList();
+
+        List<PlayerRegistrationEntity> savedPlayerRegistrationEntity = playerRegistrationRepository.saveAll(updatedEntityList);
+        return savedPlayerRegistrationEntity.stream().map(this::mapToPlayerRegistrationDto).toList();
+    }
+
     public List<PlayerRegistrationResponseDto> retrievePlayerDetails(String keyword){
         List<PlayerRegistrationEntity> playerRegistrationEntities = playerRegistrationRepository.searchByKeyword(keyword);
         return playerRegistrationEntities.stream().map(this::mapToPlayerRegistrationDto).toList();
