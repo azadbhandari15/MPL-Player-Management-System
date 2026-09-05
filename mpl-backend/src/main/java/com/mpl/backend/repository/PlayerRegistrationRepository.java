@@ -2,6 +2,8 @@ package com.mpl.backend.repository;
 
 import com.mpl.backend.entity.PlayerRegistrationEntity;
 import com.mpl.backend.entity.PlayerRegistrationStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -24,4 +26,7 @@ public interface PlayerRegistrationRepository extends JpaRepository<PlayerRegist
     @Query(value = "SELECT * FROM player_registration_details where " +
             "registration_status=:registrationStatus ORDER BY RANDOM() LIMIT 1 ",nativeQuery = true)
     Optional<PlayerRegistrationEntity> findRandomEligiblePlayer(@Param("registrationStatus") String registrationStatus);
+
+    Page<PlayerRegistrationEntity> findByRegistrationStatus(PlayerRegistrationStatus playerRegistrationStatus, Pageable pageable);
+
 }
