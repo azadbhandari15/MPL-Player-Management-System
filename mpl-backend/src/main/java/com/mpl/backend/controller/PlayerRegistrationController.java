@@ -4,7 +4,12 @@ import com.mpl.backend.entity.PlayerRegistrationEntity;
 import com.mpl.backend.model.PlayerRegistrationRequestDto;
 import com.mpl.backend.model.PlayerRegistrationResponseDto;
 import com.mpl.backend.model.PlayerRegistrationUpdateRequestDto;
+import com.mpl.backend.service.PlayerDetailsRetrievalService;
 import com.mpl.backend.service.PlayerRegistrationService;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.PagedModel;
+import org.springframework.data.web.config.SpringDataJackson3Configuration;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,9 +22,11 @@ import java.util.List;
 public class PlayerRegistrationController {
 
     private final PlayerRegistrationService playerRegistrationService;
+    private final PlayerDetailsRetrievalService playerDetailsRetrievalService;
 
-    public PlayerRegistrationController(PlayerRegistrationService playerRegistrationService) {
+    public PlayerRegistrationController(PlayerRegistrationService playerRegistrationService, PlayerDetailsRetrievalService playerDetailsRetrievalService) {
         this.playerRegistrationService = playerRegistrationService;
+        this.playerDetailsRetrievalService = playerDetailsRetrievalService;
     }
 
     @PostMapping(value = "/register-player",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -48,5 +55,10 @@ public class PlayerRegistrationController {
     @GetMapping("/next-player")
     public ResponseEntity<PlayerRegistrationResponseDto> findNextEligiblePlayer(){
         return ResponseEntity.ok(playerRegistrationService.retrieveRandomPlayer());
+    }
+
+    @GetMapping("/find-all-player")
+    public ResponseEntity<PagedModel<PlayerRegistrationResponseDto>> retrieveAllPlayerDetails(@PageableDefault(page = 0,size = 20)Pageable pageable){
+        return ResponseEntity.ok(new PagedModel<>(playerDetailsRetrievalService.findAllPlayers(pageable)));
     }
 }
