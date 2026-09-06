@@ -6,7 +6,7 @@
                             http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
 
     <include file="/schema/mpl-schema-01.xml" relativeToChangelogFile="true"/>
-<!--    <include file="/schema/hostel-service-02.xml" relativeToChangelogFile="true"/>-->
+    <include file="/schema/mpl-schema-02.xml" relativeToChangelogFile="true"/>
 <!--    <include file="/schema/hostel-service-03.xml" relativeToChangelogFile="true"/>-->
     <!--    <include file="/schema/library-service-04.xml" relativeToChangelogFile="true"/>-->
     <!--    <include file="/schema/library-service-05.xml" relativeToChangelogFile="true"/>-->
