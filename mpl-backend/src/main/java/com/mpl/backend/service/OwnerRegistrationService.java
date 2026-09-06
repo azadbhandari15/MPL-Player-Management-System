@@ -62,4 +62,19 @@ public class OwnerRegistrationService {
     public List<TeamBudgetResponseDto> retrieveTeamDetails(){
         return teamOwnerRepository.findTeamName();
     }
+
+    public OwnerRegistrationResponseDto retrieveOwnerDetails(String ownerRegistrationId){
+        TeamOwnerEntity teamOwnerEntity = teamOwnerRepository.findByOwnerRegistrationId(ownerRegistrationId)
+                .orElseThrow(() -> new RuntimeException("Owner Details Not Found"));
+
+        return OwnerRegistrationResponseDto.builder()
+                .ownerName(teamOwnerEntity.getOwnerName())
+                .ownerContactNumber(teamOwnerEntity.getOwnerContactNumber())
+                .teamName(teamOwnerEntity.getTeamName())
+                .ownerEmailId(teamOwnerEntity.getOwnerEmailAddress())
+                .ownerRegistrationId(teamOwnerEntity.getOwnerRegistrationId())
+                .registrationDate(teamOwnerEntity.getRegisteredDate())
+                .availablePurse(teamOwnerEntity.getBudgetRemaining())
+                .build();
+    }
 }
