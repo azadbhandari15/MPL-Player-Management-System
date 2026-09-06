@@ -32,4 +32,10 @@ public class TeamOwnerRegistrationController {
     public ResponseEntity<List<TeamBudgetResponseDto>> retrieveTeamDetails(){
         return ResponseEntity.ok(ownerRegistrationService.retrieveTeamDetails());
     }
+
+    @GetMapping("/owner-details/{ownerId}")
+    public ResponseEntity<OwnerRegistrationResponseDto> retrieveTeamDetails(@PathVariable String ownerId){
+        return ResponseEntity.ok(ownerRegistrationService.retrieveOwnerDetails(ownerId));
+    }
+
 }
