@@ -2,6 +2,7 @@ package com.mpl.backend.service;
 
 import com.mpl.backend.entity.TeamOwnerEntity;
 import com.mpl.backend.model.OwnerRegistrationResponseDto;
+import com.mpl.backend.model.TeamBudgetResponseDto;
 import com.mpl.backend.model.TeamOwnerRegistrationDetailsRequestDto;
 import com.mpl.backend.repository.TeamOwnerRepository;
 import org.slf4j.Logger;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -55,6 +57,9 @@ public class OwnerRegistrationService {
             throw e;
         }
 
+    }
 
+    public List<TeamBudgetResponseDto> retrieveTeamDetails(){
+        return teamOwnerRepository.findTeamName();
     }
 }
