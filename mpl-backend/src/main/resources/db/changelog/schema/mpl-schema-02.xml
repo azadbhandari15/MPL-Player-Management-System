@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="[MPL-2]Create Owner Registration Entry" author="Azad">
+        <preConditions>
+            <not>
+                <tableExists tableName="team_owner_details"/>
+            </not>
+        </preConditions>
+        <createTable tableName="team_owner_details">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="owner_name" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="owner_contact_number" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="owner_email_address" type="TEXT"/>
+            <column name="team_name" type="TEXT"/>
+            <column name="owner_registration_id" type="TEXT"/>
+            <column name="budget_remaining" type="DECIMAL(15,2)"/>
+            <column name="registered_date" type="TIMESTAMP"/>
+        </createTable>
+        <comment>Create Hostel Table</comment>
+    </changeSet>
+    
+    <changeSet id="[MPL-3]Added New Column in Player Registration Details" author="Azad">
+        <preConditions>
+            <tableExists tableName="player_registration_details"/>
+        </preConditions>
+        <addColumn tableName="player_registration_details">
+            <column name="owner_id" type="BIGINT"/>
+            <column name="soldPrice" type="DECIMAL(15,2)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="[MPL-3]Added Foreign Key Reference in the Player Registration Details" author="Azad">
+        <addForeignKeyConstraint baseTableName="player_registration_details" baseColumnNames="owner_id"
+                                 constraintName="fk_player_owner_id" referencedTableName="team_owner_details" referencedColumnNames="id" />
+    </changeSet>
+
+
+</databaseChangeLog>
