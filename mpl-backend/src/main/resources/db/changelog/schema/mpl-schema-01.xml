@@ -6,7 +6,7 @@
                             http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
 
     <changeSet id="[MPL-1]Create Player Registration Entry" author="Azad">
-        <preConditions>
+        <preConditions onFail="MARK_RAN" onError="MARK_RAN">
             <not>
                 <tableExists tableName="player_registration_details"/>
             </not>
@@ -37,11 +37,4 @@
         </createTable>
         <comment>Create Hostel Table</comment>
     </changeSet>
-
-
-
-
-
-
-
 </databaseChangeLog>
