@@ -6,7 +6,7 @@
                             http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
 
     <changeSet id="[MPL-2]Create Owner Registration Entry" author="Azad">
-        <preConditions>
+        <preConditions onFail="MARK_RAN" onError="MARK_RAN">
             <not>
                 <tableExists tableName="team_owner_details"/>
             </not>
@@ -31,12 +31,12 @@
     </changeSet>
     
     <changeSet id="[MPL-3]Added New Column in Player Registration Details" author="Azad">
-        <preConditions>
+        <preConditions onFail="MARK_RAN" onError="MARK_RAN">
             <tableExists tableName="player_registration_details"/>
         </preConditions>
         <addColumn tableName="player_registration_details">
             <column name="owner_id" type="BIGINT"/>
-            <column name="soldPrice" type="DECIMAL(15,2)"/>
+            <column name="sold_price" type="DECIMAL(15,2)"/>
         </addColumn>
     </changeSet>
     <changeSet id="[MPL-3]Added Foreign Key Reference in the Player Registration Details" author="Azad">
