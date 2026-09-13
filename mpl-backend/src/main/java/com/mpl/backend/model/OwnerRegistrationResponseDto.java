@@ -5,6 +5,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -20,4 +21,5 @@ public class OwnerRegistrationResponseDto {
     private BigDecimal availablePurse;
     private LocalDateTime registrationDate;
     private String ownerEmailId;
+    private List<PlayerAuctionResponseDto>  players;
 }

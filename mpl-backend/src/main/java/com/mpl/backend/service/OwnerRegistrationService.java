@@ -2,6 +2,7 @@ package com.mpl.backend.service;
 
 import com.mpl.backend.entity.TeamOwnerEntity;
 import com.mpl.backend.model.OwnerRegistrationResponseDto;
+import com.mpl.backend.model.PlayerAuctionResponseDto;
 import com.mpl.backend.model.TeamBudgetResponseDto;
 import com.mpl.backend.model.TeamOwnerRegistrationDetailsRequestDto;
 import com.mpl.backend.repository.TeamOwnerRepository;
@@ -67,6 +68,15 @@ public class OwnerRegistrationService {
         TeamOwnerEntity teamOwnerEntity = teamOwnerRepository.findByOwnerRegistrationId(ownerRegistrationId)
                 .orElseThrow(() -> new RuntimeException("Owner Details Not Found"));
 
+        List<PlayerAuctionResponseDto> players=teamOwnerEntity.getPlayers()
+                .stream().map(player->PlayerAuctionResponseDto
+                        .builder()
+                        .playerName(player.getPlayerName())
+                        .playerType(player.getPlayerType())
+                        .bidAmount(player.getSoldPrice())
+                        .build())
+                .toList();
+
         return OwnerRegistrationResponseDto.builder()
                 .ownerName(teamOwnerEntity.getOwnerName())
                 .ownerContactNumber(teamOwnerEntity.getOwnerContactNumber())
@@ -75,6 +85,7 @@ public class OwnerRegistrationService {
                 .ownerRegistrationId(teamOwnerEntity.getOwnerRegistrationId())
                 .registrationDate(teamOwnerEntity.getRegisteredDate())
                 .availablePurse(teamOwnerEntity.getBudgetRemaining())
+                .players(players)
                 .build();
     }
 }
