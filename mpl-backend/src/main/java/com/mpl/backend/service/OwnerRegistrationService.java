@@ -74,6 +74,8 @@ public class OwnerRegistrationService {
                         .playerName(player.getPlayerName())
                         .playerType(player.getPlayerType())
                         .bidAmount(player.getSoldPrice())
+                        .contactNumber(player.getContactNumber())
+                        .playerId(player.getPlayerId())
                         .build())
                 .toList();
 
