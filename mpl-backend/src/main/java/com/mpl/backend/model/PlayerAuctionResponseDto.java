@@ -19,6 +19,8 @@ public class PlayerAuctionResponseDto {
     private PlayerRegistrationStatus auctionStatus;
     private PlayerType playerType;
     private BigDecimal bidAmount;
+    private String contactNumber;
+    private String playerId;
     private String teamName;
     private String ownerName;
 }
