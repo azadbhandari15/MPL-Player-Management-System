@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="[MPL-4]Create Fixture Entity for the table" author="Azad">
+        <preConditions onFail="MARK_RAN" onError="MARK_RAN">
+            <not>
+                <tableExists tableName="tournament_fixtures"/>
+            </not>
+        </preConditions>
+        <createTable tableName="tournament_fixtures">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="fixture_id" type="TEXT"/>
+            <column name="team_home_id" type="BIGINT" >
+                <constraints foreignKeyName="fk_team_home"
+                             referencedTableName="team_owner_details"
+                             referencedColumnNames="id"/>
+            </column>
+            <column name="team_away_id" type="BIGINT" >
+                <constraints foreignKeyName="fk_away_home"
+                             referencedTableName="team_owner_details"
+                             referencedColumnNames="id"/>
+            </column>
+            <column name="match_date_time" type="TIMESTAMP">
+                <constraints nullable="false" />
+            </column>
+            <column name="venue" type="TEXT"/>
+            <column name="fixture_status" type="VARCHAR(50)" defaultValue="SCHEDULED"/>
+            <column name="winner_team_id" type="BIGINT" >
+                <constraints foreignKeyName="fk_winner_team"
+                             referencedTableName="team_owner_details"
+                             referencedColumnNames="id"/>
+            </column>
+            <column name="toss_winner_team_id" type="BIGINT" >
+                <constraints foreignKeyName="fk_toss_winner_team"
+                             referencedTableName="team_owner_details"
+                             referencedColumnNames="id"/>
+            </column>
+            <column name="toss_decision" type="TEXT"/>
+            <column name="match_summary" type="TEXT"/>
+        </createTable>
+        <comment>Create Hostel Table</comment>
+    </changeSet>
+
+
+</databaseChangeLog>
