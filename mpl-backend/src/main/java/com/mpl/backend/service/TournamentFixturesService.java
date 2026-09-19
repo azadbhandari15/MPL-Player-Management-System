@@ -1,5 +1,6 @@
 package com.mpl.backend.service;
 
+import com.mpl.backend.entity.FixtureCategory;
 import com.mpl.backend.entity.FixtureStatus;
 import com.mpl.backend.entity.TeamOwnerEntity;
 import com.mpl.backend.entity.TournamentPlayerFixturesEntity;
@@ -13,11 +14,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.mpl.backend.entity.FixtureStatus.*;
 
@@ -100,27 +99,16 @@ public class TournamentFixturesService {
         List<TournamentPlayerFixturesEntity> fixtures = tournamentPlayerFixturesRepository
                 .findAll();
 
-        List<TeamFixturesResponseDto> upcomingFixtures = fixtures.stream()
-                .filter(fixture -> SCHEDULED
-                        .equals(fixture.getFixtureStatus()))
-                .map(this::mapToTeamFixtureResponseDto)
-                .toList();
-
-        List<TeamFixturesResponseDto> liveFixtures = fixtures.stream()
-                .filter(fixture -> IN_PROGRESS.equals(fixture.getFixtureStatus()))
-                .map(this::mapToTeamFixtureResponseDto)
-                .toList();
-
-        List<TeamFixturesResponseDto> completedFixture = fixtures.stream()
-                .filter(fixture-> Arrays.asList(COMPLETED,ABANDONED,POSTPONED)
-                        .contains(fixture.getFixtureStatus()))
-                .map(this::mapToTeamFixtureResponseDto)
-                .toList();
+        Map<FixtureCategory, List<TeamFixturesResponseDto>> categorized = fixtures.stream()
+                .collect(Collectors.groupingBy(
+                        this::categorizeFixture,
+                        Collectors.mapping(this::mapToTeamFixtureResponseDto, Collectors.toList())
+                ));
 
         return FixtureBulkResponseDto.builder()
-                .liveFixture(liveFixtures)
-                .pastFixtures(completedFixture)
-                .upcomingFixture(upcomingFixtures)
+                .liveFixture(categorized.getOrDefault(FixtureCategory.LIVE, List.of()))
+                .upcomingFixture(categorized.getOrDefault(FixtureCategory.UPCOMING, List.of()))
+                .pastFixtures(categorized.getOrDefault(FixtureCategory.PAST, List.of()))
                 .build();
     }
 
@@ -139,5 +127,19 @@ public class TournamentFixturesService {
                 .matchWinner(safeGet(tournamentPlayerFixturesEntity.getTossWinnerTeamOwnerEntity(), TeamOwnerEntity::getTeamName))
                 .tossWinner(safeGet(tournamentPlayerFixturesEntity.getTeamOwnerEntityWinner(), TeamOwnerEntity::getTeamName))
                 .build();
+    }
+
+    private FixtureCategory categorizeFixture(TournamentPlayerFixturesEntity fixture) {
+        FixtureStatus status = fixture.getFixtureStatus();
+        if (SCHEDULED.equals(status)) {
+            return FixtureCategory.UPCOMING;
+        }
+        if (IN_PROGRESS.equals(status)) {
+            return FixtureCategory.LIVE;
+        }
+        if (COMPLETED.equals(status) || ABANDONED.equals(status) || POSTPONED.equals(status)) {
+            return FixtureCategory.PAST;
+        }
+        return FixtureCategory.OTHER;
     }
 }
