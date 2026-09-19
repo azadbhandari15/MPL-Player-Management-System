@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="[MPL-5]Add New Column for Cric Heros Link" author="Azad">
+        <preConditions onFail="MARK_RAN" onError="MARK_RAN">
+                <tableExists tableName="tournament_fixtures"/>
+        </preConditions>
+        <addColumn tableName="tournament_fixtures">
+            <column name="cric_heros_match_link" type="TEXT"/>
+        </addColumn>
+    </changeSet>
+
+
+</databaseChangeLog>

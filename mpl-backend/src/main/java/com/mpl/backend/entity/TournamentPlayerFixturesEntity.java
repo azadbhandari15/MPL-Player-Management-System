@@ -48,6 +48,7 @@ public class TournamentPlayerFixturesEntity {
 
     private String tossDecision;
     private String matchSummary;
+    private String cricHerosMatchLink;
 
 
 }
