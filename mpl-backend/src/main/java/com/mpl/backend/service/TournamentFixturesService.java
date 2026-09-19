@@ -12,7 +12,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Objects;
 import java.util.UUID;
+import java.util.function.Function;
 
 @Service
 public class TournamentFixturesService {
@@ -55,12 +57,37 @@ public class TournamentFixturesService {
         TournamentPlayerFixturesEntity savedFixture = tournamentPlayerFixturesRepository.save(tournamentPlayerFixturesEntity);
 
 
-        return TeamFixturesResponseDto.builder().matchFixtureId(savedFixture.getFixtureId())
+        return TeamFixturesResponseDto.builder()
+                .matchFixtureId(savedFixture.getFixtureId())
                 .homeTeamName(homeTeam.getTeamName())
                 .awayTeamName(awayTeam.getTeamName())
                 .matchDateTime(savedFixture.getMatchDateTime())
                 .venue(savedFixture.getVenue())
                 .fixtureStatus(savedFixture.getFixtureStatus())
                 .build();
+    }
+
+    public TeamFixturesResponseDto retrieveTeamFixtureDetails(String fixtureId){
+        TournamentPlayerFixturesEntity fixturesDetails = tournamentPlayerFixturesRepository.findByFixtureId(fixtureId)
+                .orElseThrow(() -> new RuntimeException("Fixtures Not Found"));
+
+        return TeamFixturesResponseDto.builder()
+                .matchFixtureId(fixturesDetails.getFixtureId())
+                .homeTeamName(safeGet(fixturesDetails.getTeamOwnerEntityHomeEntity(),TeamOwnerEntity::getTeamName))
+                .awayTeamName(safeGet(fixturesDetails.getTeamOwnerEntityAwayEntity(),TeamOwnerEntity::getTeamName))
+                .homeTeamId(safeGet(fixturesDetails.getTeamOwnerEntityHomeEntity(),TeamOwnerEntity::getOwnerRegistrationId))
+                .awayTeamId(safeGet(fixturesDetails.getTeamOwnerEntityAwayEntity(),TeamOwnerEntity::getOwnerRegistrationId))
+                .matchDateTime(fixturesDetails.getMatchDateTime())
+                .venue(fixturesDetails.getVenue())
+                .fixtureStatus(fixturesDetails.getFixtureStatus())
+               .result(fixturesDetails.getMatchSummary())
+               .cricHeroProfile(fixturesDetails.getCricHerosMatchLink())
+               .matchWinner(safeGet(fixturesDetails.getTossWinnerTeamOwnerEntity(),TeamOwnerEntity::getTeamName))
+               .tossWinner(safeGet(fixturesDetails.getTeamOwnerEntityWinner(),TeamOwnerEntity::getTeamName))
+                .build();
+    }
+
+    public static <T, R> R safeGet(T object, Function<T, R> getter) {
+        return object != null ? getter.apply(object) : null;
     }
 }
