@@ -1,5 +1,6 @@
 package com.mpl.backend.controller;
 
+import com.mpl.backend.model.FixtureBulkResponseDto;
 import com.mpl.backend.model.TeamFixturesRequestDto;
 import com.mpl.backend.model.TeamFixturesResponseDto;
 import com.mpl.backend.service.TournamentFixturesService;
@@ -30,5 +31,10 @@ public class TeamFixtureController {
     public ResponseEntity<TeamFixturesResponseDto> retrieveFixtureDetails(@PathVariable String fixtureId){
         logger.info("Retrieve Fixture Details for the fixtureId: {}",fixtureId);
         return ResponseEntity.ok(tournamentFixturesService.retrieveTeamFixtureDetails(fixtureId));
+    }
+
+    @GetMapping("/fixtures")
+    public ResponseEntity<FixtureBulkResponseDto> retrieveBulkFixture(){
+        return ResponseEntity.ok(tournamentFixturesService.retrieveBulkDetails());
     }
 }
