@@ -112,6 +112,26 @@ public class TournamentFixturesService {
                 .build();
     }
 
+    public TeamFixturesResponseDto updateTossDetails(String fixtureId,String tossWinnerTeamId,String matchSummary){
+
+        TournamentPlayerFixturesEntity fixtureEntity = tournamentPlayerFixturesRepository.findByFixtureId(fixtureId)
+                .orElseThrow(() -> new RuntimeException("Fixture not found"));
+
+        if(Arrays.asList(COMPLETED,ABANDONED).contains(fixtureEntity.getFixtureStatus())){
+            throw new IllegalArgumentException("Fixture has already completed");
+        }
+        TeamOwnerEntity teamOwnerEntity=teamOwnerRepository.findByOwnerRegistrationId(tossWinnerTeamId)
+                .orElseThrow(()->new RuntimeException("Owner Details Not Found"));
+
+        fixtureEntity.setTossWinnerTeamOwnerEntity(teamOwnerEntity);
+        fixtureEntity.setFixtureStatus(IN_PROGRESS);
+        fixtureEntity.setMatchSummary(matchSummary);
+        tournamentPlayerFixturesRepository.save(fixtureEntity);
+
+        return mapToTeamFixtureResponseDto(fixtureEntity);
+
+    }
+
     public TeamFixturesResponseDto mapToTeamFixtureResponseDto(TournamentPlayerFixturesEntity tournamentPlayerFixturesEntity) {
         return TeamFixturesResponseDto.builder()
                 .matchFixtureId(tournamentPlayerFixturesEntity.getFixtureId())
@@ -124,8 +144,8 @@ public class TournamentFixturesService {
                 .fixtureStatus(tournamentPlayerFixturesEntity.getFixtureStatus())
                 .result(tournamentPlayerFixturesEntity.getMatchSummary())
                 .cricHeroProfile(tournamentPlayerFixturesEntity.getCricHerosMatchLink())
-                .matchWinner(safeGet(tournamentPlayerFixturesEntity.getTossWinnerTeamOwnerEntity(), TeamOwnerEntity::getTeamName))
-                .tossWinner(safeGet(tournamentPlayerFixturesEntity.getTeamOwnerEntityWinner(), TeamOwnerEntity::getTeamName))
+                .tossWinner(safeGet(tournamentPlayerFixturesEntity.getTossWinnerTeamOwnerEntity(), TeamOwnerEntity::getTeamName))
+                .matchWinner(safeGet(tournamentPlayerFixturesEntity.getTeamOwnerEntityWinner(), TeamOwnerEntity::getTeamName))
                 .build();
     }
 
