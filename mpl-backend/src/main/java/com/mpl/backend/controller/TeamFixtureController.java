@@ -37,4 +37,10 @@ public class TeamFixtureController {
     public ResponseEntity<FixtureBulkResponseDto> retrieveBulkFixture(){
         return ResponseEntity.ok(tournamentFixturesService.retrieveBulkDetails());
     }
+
+    @PutMapping("/update-fixtures")
+    public ResponseEntity<TeamFixturesResponseDto> updatedFixtureStatus(@RequestParam String fixtureId, @RequestParam String tossWinnerTeamId,
+                                                                       @RequestParam String matchSummary){
+     return ResponseEntity.ok(tournamentFixturesService.updateTossDetails(fixtureId,tossWinnerTeamId,matchSummary));
+    }
 }
