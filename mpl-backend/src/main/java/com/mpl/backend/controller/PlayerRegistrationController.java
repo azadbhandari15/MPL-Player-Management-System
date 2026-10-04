@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.util.List;
 
 @RestController
+@CrossOrigin(value = "http://localhost:5173")
 @RequestMapping("/mpl/players")
 public class PlayerRegistrationController {
 
