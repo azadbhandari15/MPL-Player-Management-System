@@ -1,5 +1,5 @@
 import { useState, useEffect,useRef } from "react";
-import { Menu, X ,ChevronDown } from "lucide-react";
+import { Menu, X, ChevronDown, Search } from "lucide-react";
 
 const PLAYER_TYPES = [
   {label:"Batsman",value: "BATSMAN"},
@@ -26,6 +26,8 @@ export default function Navbar() {
 
    const [typeOpen, setTypeOpen] = useState(false);
    const [playerType,setPlayerType]=useState(null);
+   const [searchQuery, setSearchQuery]=useState("");
+   const [searchOpen, setSearchOpen]=useState(false);
    const [form,setForm]=useState({
     playerName:"",
     contactNumber:"",
@@ -79,6 +81,14 @@ const [imagePreview, setImagePreview] = useState(null);
     setImageFile(null);
     setImagePreview(null);
   } 
+
+  function handleSearch(e) {
+  e.preventDefault();
+  const q = searchQuery.trim();
+  if (!q) return;
+  console.log("Search:", q);
+  setSearchOpen(false);
+}
   
   function closeResult() {
   setResult(null);
@@ -207,6 +217,14 @@ useEffect(() => {
 
           </ul>
 
+          <form onSubmit={handleSearch} className="hidden lg:flex items center" role="search">
+            <div className="relative">
+              <Search size={18} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-white/50"/>
+              <input type="search" value={searchQuery} onChange={(e)=>setSearchQuery(e.target.value)} placeholder="Search Player Info" aria-label="Search" className="w-44 xl:w-64 rounded-full bg-slate-800/80 border border-white/10 py-2.5 pl-10 pr-4 text-sm text-white placeholder-white/40 outline-none focus:border-yellow-400 
+              "/>
+            </div>
+          </form>
+
           {/* Register Button */}
 
           <div className="hidden lg:block px-6">
@@ -223,10 +241,36 @@ useEffect(() => {
 
           {/* Mobile Menu */}
 
-          <button className="mr-6 lg:hidden" onClick={()=> setIsOpen(true)}>
+          <div className="mr-6 flex items-center gap-4 lg:hidden">
+
+          <button aria-label="Search" onClick={()=>{setSearchOpen((o)=>!o); setIsOpen(false);}}>
+            <Search color="white"/>
+          </button>
+
+          </div>  
+
+          <button className="mr-6  flex items-center gap-4 lg:hidden" onClick={()=> setIsOpen(true)}>
             <Menu color="white" />
           </button>
         </div>
+
+        {
+          searchOpen && (
+           <form onSubmit={handleSearch} role="search" className="lg:hidden mt-2 flex items-center gap-3 rounded-2xl border border-white/10 bg-slate-900/95 backdrop-blur-xl p-4">
+            <div className="relative flex-1">
+              <Search size={18} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2
+              text-white/50"/>
+              <input type="search" autoFocus value={searchQuery} onChange={(e)=>setSearchQuery(e.target.value) }
+              placeholder="Search Player Info" aria-label="Search" className="w-full rounded-full bg-slate-800 border border-white/10 py-2.5 pl-10 pr-4 text-sm text-white placeholder-white/40 outline-none focus:none focus:border-yellow-400"></input>
+            </div>
+            <button type="button" aria-label="Close Search" onClick={()=>{setSearchOpen(false)}}>
+              <X color="white" size={20}/>
+            </button>
+
+           </form> 
+          )
+        }
+        
         {isOpen &&(
           <div className="lg:hidden mt-2 rounder-2xl border border-white/10 bg-stale-900/95 backdrop-blur-xl p-6 text-white">
             <div className="flex justify-end mb-4">
