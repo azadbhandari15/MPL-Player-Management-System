@@ -4,6 +4,8 @@ import { searchPlayers, NetworkError } from "../api/playerApi";
 import Toast from "./Toast";
 import SearchResults from "./SearchResults";
 import PlayerDetailCard from "./PlayerDetailCard";
+import { Link } from "react-router-dom";
+
 
 const PLAYER_TYPES = [
   {label:"Batsman",value: "BATSMAN"},
@@ -18,14 +20,10 @@ export default function Navbar() {
   const [isOpen,setIsOpen]=useState(false);
   const [showRegister, setShowRegister]=useState(false);
   const navItems = [
-    "Home",
-    "About",
-    "Teams",
-    // "Schedule",
-    // "Gallery",
-    // "Auction",
-    // "Champions",
-    "Contact",
+    {label: "Home",to:"/"},
+    {label: "About",to:"/about"},
+    {label: "Teams",to:"/teams"},
+    {label: "Contact",to:"/contact"},
   ];
 
    const [typeOpen, setTypeOpen] = useState(false);
@@ -225,21 +223,8 @@ useEffect(() => {
           <ul className="hidden lg:flex items-center gap-8 text-white">
 
             {navItems.map((item) => (
-              <li key={item}>
-                <a
-                  href="#"
-                  className="relative transition duration-300 hover:text-yellow-400
-                  after:absolute
-                  after:left-0
-                  after:-bottom-2
-                  after:h-[2px]
-                  after:w-0
-                  after:bg-yellow-400
-                  after:transition-all
-                  hover:after:w-full"
-                >
-                  {item}
-                </a>
+              <li key={item.to}>
+                <Link to ={item.to} className="relative transistion duration-300 hover:text-yellow-400 after:absolute after:left-0 after:-bottom-2 after:h-[2px] after:w-0 after:w-0 after:bg-yellow-400 after:transistion-all hover:after:w-full">{item.label}</Link>
               </li>
             ))}
 
@@ -308,10 +293,8 @@ useEffect(() => {
             </div>
             <ul className="flex flex-col gap-4">
               {navItems.map((item)=>(
-                <li key={item}>
-                  <a href="#" onClick={()=>setIsOpen(false)} className="block text-lg hover:text-yellow-400">
-                    {item}
-                    </a>
+                <li key={item.to}>
+                  <Link to={item.to} onClick={()=>setIsOpen(false)} className="block text-lg hover:text-yellow-400">{item.label}</Link>
                 </li>
               ))}
             </ul>
