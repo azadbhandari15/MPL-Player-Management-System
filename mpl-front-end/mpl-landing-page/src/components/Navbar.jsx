@@ -1,5 +1,9 @@
 import { useState, useEffect,useRef } from "react";
 import { Menu, X, ChevronDown, Search } from "lucide-react";
+import { searchPlayers, NetworkError } from "../api/playerApi";
+import Toast from "./Toast";
+import SearchResults from "./SearchResults";
+import PlayerDetailCard from "./PlayerDetailCard";
 
 const PLAYER_TYPES = [
   {label:"Batsman",value: "BATSMAN"},
@@ -39,6 +43,10 @@ export default function Navbar() {
   const [loading,setLoading]=useState(false);
   const [result,setResult]=useState(null);
   const typeRef = useRef(null);
+  const [searchStatus,setSearchStatus]=useState("idle");
+  const [searchResults,setSearchResults]=useState([]);
+  const [selectedPlayer,setSelectedPlayer]=useState(null);
+  const [toast,setToast]=useState(null);
 
 function handleChange(e) {
   setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
@@ -88,7 +96,27 @@ const [imagePreview, setImagePreview] = useState(null);
   if (!q) return;
   console.log("Search:", q);
   setSearchOpen(false);
+  runSearch(q);
 }
+
+async function runSearch(keyword){
+  setSearchStatus("loading");
+  setToast(null);
+  try{
+    const data=await  searchPlayers(keyword);
+    setSearchResults(data);
+    setSearchStatus(data.length>0?"success":"empty");
+  }catch(err){
+    setSearchStatus("idle");
+    setToast({
+      message: err instanceof NetworkError ? "Connection Problem. Please Try Again Later":err.message,
+      keyword,
+      canRetry:err instanceof NetworkError,
+    });
+  }
+}
+
+
   
   function closeResult() {
   setResult(null);
@@ -410,6 +438,10 @@ useEffect(() => {
     </div>
   </div>
 )}
+<SearchResults status={searchStatus} results={searchResults} onSelect={(p)=>{setSelectedPlayer(p); 
+  setSearchStatus("idle");}} onclose={()=>{setSearchStatus("idle")}}/>
+  <PlayerDetailCard player={selectedPlayer} onClose={()=>setSelectedPlayer(null)}/>
+  {toast && (<Toast message={toast.message} onRetry={toast.canRetry ? ()=>runSearch(toast.keyword):undefined} onClose={()=>setToast(null)}/>)}
   </>  
   );
   
