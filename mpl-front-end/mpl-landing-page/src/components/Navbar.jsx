@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Menu, X, Search } from "lucide-react";
 import { searchPlayers, NetworkError } from "../api/playerApi";
 import Toast from "./Toast";
@@ -6,22 +6,25 @@ import SearchResults from "./SearchResults";
 import PlayerDetailCard from "./PlayerDetailCard";
 import { Link } from "react-router-dom";
 
+const NAV_ITEMS = [
+  { label: "Home", to: "/" },
+  { label: "About", to: "/about" },
+  { label: "Teams", to: "/teams" },
+  { label: "Contact", to: "/contact" },
+  { label: "Live Auction", to: "/liveauction" },
+];
+
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
-  const navItems = [
-    { label: "Home", to: "/" },
-    { label: "About", to: "/about" },
-    { label: "Teams", to: "/teams" },
-    { label: "Contact", to: "/contact" },
-    {label:"Live Auction" ,to:"/liveauction"}
-  ];
-
   const [searchQuery, setSearchQuery] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
-  const [searchStatus, setSearchStatus] = useState("idle");
+  const [searchStatus, setSearchStatus] = useState("idle"); // idle | loading | success | empty
   const [searchResults, setSearchResults] = useState([]);
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [toast, setToast] = useState(null);
+
+  // Ignores responses from older searches if the user searches again quickly
+  const latestRequest = useRef(0);
 
   function handleSearch(e) {
     e.preventDefault();
@@ -32,18 +35,25 @@ export default function Navbar() {
   }
 
   async function runSearch(keyword) {
+    const requestId = ++latestRequest.current;
     setSearchStatus("loading");
     setToast(null);
+
     try {
       const data = await searchPlayers(keyword);
-      setSearchResults(data);
-      setSearchStatus(data.length > 0 ? "success" : "empty");
+      if (requestId !== latestRequest.current) return;
+
+      const list = Array.isArray(data) ? data : [];
+      setSearchResults(list);
+      setSearchStatus(list.length > 0 ? "success" : "empty");
     } catch (err) {
+      if (requestId !== latestRequest.current) return;
+
       setSearchStatus("idle");
       setToast({
         message:
           err instanceof NetworkError
-            ? "Connection Problem. Please Try Again Later"
+            ? "Connection problem. Please try again later."
             : err.message,
         keyword,
         canRetry: err instanceof NetworkError,
@@ -51,19 +61,18 @@ export default function Navbar() {
     }
   }
 
+  function closeSearchResults() {
+    latestRequest.current++; // cancel any in-flight search result
+    setSearchStatus("idle");
+  }
+
   return (
     <>
       <header className="fixed top-0 left-0 w-full z-50">
         <nav className="mx-auto max-w-7xl px-6">
-          <div
-            className="mt-4 flex h-20 items-center justify-between rounded-2xl
-                        border border-white/10
-                        bg-slate-900/70
-                        backdrop-blur-xl
-                        shadow-2xl"
-          >
+          <div className="mt-4 flex h-20 items-center justify-between rounded-2xl border border-white/10 bg-slate-900/70 backdrop-blur-xl shadow-2xl">
             {/* Logo */}
-            <div className="flex items-center gap-3 px-6">
+            <Link to="/" className="flex items-center gap-3 px-6">
               <span className="text-3xl">🏏</span>
               <div>
                 <h1 className="text-2xl font-bold text-white">
@@ -73,11 +82,11 @@ export default function Navbar() {
                   Since 2024
                 </p>
               </div>
-            </div>
+            </Link>
 
             {/* Desktop Menu */}
             <ul className="hidden lg:flex items-center gap-8 text-white">
-              {navItems.map((item) => (
+              {NAV_ITEMS.map((item) => (
                 <li key={item.to}>
                   <Link
                     to={item.to}
@@ -122,7 +131,13 @@ export default function Navbar() {
               >
                 <Search color="white" />
               </button>
-              <button aria-label="Menu" onClick={() => setIsOpen(true)}>
+              <button
+                aria-label="Menu"
+                onClick={() => {
+                  setIsOpen(true);
+                  setSearchOpen(false);
+                }}
+              >
                 <Menu color="white" />
               </button>
             </div>
@@ -164,12 +179,12 @@ export default function Navbar() {
           {isOpen && (
             <div className="lg:hidden mt-2 rounded-2xl border border-white/10 bg-slate-900/95 backdrop-blur-xl p-6 text-white">
               <div className="flex justify-end mb-4">
-                <button onClick={() => setIsOpen(false)}>
+                <button aria-label="Close Menu" onClick={() => setIsOpen(false)}>
                   <X color="white" />
                 </button>
               </div>
               <ul className="flex flex-col gap-4">
-                {navItems.map((item) => (
+                {NAV_ITEMS.map((item) => (
                   <li key={item.to}>
                     <Link
                       to={item.to}
@@ -186,6 +201,7 @@ export default function Navbar() {
         </nav>
       </header>
 
+      {/* Both spellings are passed so it works whichever one SearchResults reads */}
       <SearchResults
         status={searchStatus}
         results={searchResults}
@@ -193,7 +209,8 @@ export default function Navbar() {
           setSelectedPlayer(p);
           setSearchStatus("idle");
         }}
-        onclose={() => setSearchStatus("idle")}
+        onClose={closeSearchResults}
+        onclose={closeSearchResults}
       />
       <PlayerDetailCard
         player={selectedPlayer}
