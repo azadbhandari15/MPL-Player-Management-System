@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
+@CrossOrigin(value = "http://localhost:5173")
 @RequestMapping("mpl/owner")
 public class TeamOwnerRegistrationController {
     private static final Logger logger= LoggerFactory.getLogger(TeamOwnerRegistrationController.class);

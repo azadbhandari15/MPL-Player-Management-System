@@ -49,8 +49,6 @@ export default function Hero() {
           </p>
 
           {/* Buttons */}
-          <HeroButtons />
-
         </div>
 
       </div>

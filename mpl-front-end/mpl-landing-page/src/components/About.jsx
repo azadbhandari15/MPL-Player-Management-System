@@ -64,11 +64,6 @@ export default function About() {
               </div>
 
             </div>
-
-            <button className="mt-12 rounded-full bg-yellow-400 px-8 py-4 font-semibold text-black transition duration-300 hover:scale-105 hover:bg-yellow-300">
-              Learn More
-            </button>
-
           </div>
 
         </div>

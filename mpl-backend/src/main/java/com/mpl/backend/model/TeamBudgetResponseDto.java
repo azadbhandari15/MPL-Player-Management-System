@@ -13,6 +13,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class TeamBudgetResponseDto {
 
+    private String ownerRegistrationId;
     private String teamName;
     private BigDecimal availablePurse;
 }

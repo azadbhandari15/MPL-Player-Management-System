@@ -1,8 +1,8 @@
 const COMMITTEE = [
-  { name: "Sam Ashrafi", role: "Commitee Head", phone: "+91 00000 00000" },
-  { name: "Avinash Singh", role: "Treasurer", phone: "+91 00000 00000" },
-  { name: "Shreshtha Das", role: "Disciplinary Head", phone: "+91 00000 00000" },
-  { name: "Zaid Khan", role: "Stock Manager ", phone: "+91 00000 00000" },
+  { name: "Sam Ashrafi", role: "Commitee Head", phone: "+91 96851 91443" },
+  { name: "Avinash Singh", role: "Treasurer", phone: "+91 91091 44457" },
+  { name: "Shreshtha Das", role: "Disciplinary Head", phone: "+91 93403 37606" },
+  { name: "Zaid Khan", role: "Stock Manager", phone: "+91 77709 39709" },
 ];
  
 export default function ContactInfo() {
