@@ -6,6 +6,7 @@ import Contact from './pages/Contact';
 import ScrollToTop from './components/ScrollToTop';
 import Teams from "./pages/Teams";
 import TeamDetails from "./pages/TeamDetails";
+import LiveAuction from "./pages/LiveAuction";
 
 
 export default function App(){
@@ -19,6 +20,7 @@ export default function App(){
       <Route path="/contact" element={<Contact/>}/>
       <Route path="/teams" element={<Teams />} />
       <Route path="/teams/:ownerId" element={<TeamDetails />} />
+      <Route path="/liveauction" element={<LiveAuction />} />
     </Routes>
     </>
   )
