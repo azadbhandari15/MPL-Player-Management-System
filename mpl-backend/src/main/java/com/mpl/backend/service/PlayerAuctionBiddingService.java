@@ -2,12 +2,14 @@ package com.mpl.backend.service;
 
 import com.mpl.backend.entity.PlayerRegistrationEntity;
 import com.mpl.backend.entity.TeamOwnerEntity;
+import com.mpl.backend.model.AuctionUpdateEvent;
 import com.mpl.backend.model.PlayerAuctionBiddingRequestDto;
 import com.mpl.backend.model.PlayerAuctionResponseDto;
 import com.mpl.backend.repository.PlayerRegistrationRepository;
 import com.mpl.backend.repository.TeamOwnerRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,10 +23,12 @@ public class PlayerAuctionBiddingService {
     private static final Logger logger= LoggerFactory.getLogger(PlayerAuctionBiddingService.class);
     private final PlayerRegistrationRepository playerRegistrationRepository;
     private final TeamOwnerRepository teamOwnerRepository;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
-    public PlayerAuctionBiddingService(PlayerRegistrationRepository playerRegistrationRepository, TeamOwnerRepository teamOwnerRepository) {
+    public PlayerAuctionBiddingService(PlayerRegistrationRepository playerRegistrationRepository, TeamOwnerRepository teamOwnerRepository, ApplicationEventPublisher applicationEventPublisher) {
         this.playerRegistrationRepository = playerRegistrationRepository;
         this.teamOwnerRepository = teamOwnerRepository;
+        this.applicationEventPublisher = applicationEventPublisher;
     }
 
     @Transactional
@@ -62,6 +66,7 @@ public class PlayerAuctionBiddingService {
 
             playerRegistrationRepository.save(playerRegistrationEntity);
             teamOwnerRepository.save(teamOwnerEntity);
+            applicationEventPublisher.publishEvent(new AuctionUpdateEvent("PLAYER_SOLD", null));
 
             return PlayerAuctionResponseDto
                     .builder()
