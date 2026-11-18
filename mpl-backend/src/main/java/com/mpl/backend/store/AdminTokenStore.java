@@ -32,7 +32,7 @@ public class AdminTokenStore {
         Instant expiry=tokens.get(token);
         if(expiry==null)
             return false;
-        if(expiry.isBefore(expiry)){
+        if(expiry.isBefore(Instant.now())){
             tokens.remove(token);
             return false;
         }

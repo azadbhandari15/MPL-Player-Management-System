@@ -10,8 +10,13 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const redirectTo = location.state?.from?.pathname || "/";
-  if (isAuthenticated) return <Navigate to={redirectTo} replace />;
+  // Avoid redirecting back to /login if it was captured in location.state
+  const fromPath = location.state?.from?.pathname;
+  const redirectTo = fromPath && fromPath !== "/login" ? fromPath : "/";
+
+  if (isAuthenticated) {
+    return <Navigate to={redirectTo} replace />;
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -31,7 +36,7 @@ export default function Login() {
   const input =
     "w-full rounded-lg border border-neutral-300 bg-white px-4 py-3 text-neutral-900 placeholder-neutral-400 outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-500/30";
 
-   return (
+  return (
     <main className="flex min-h-screen items-center justify-center bg-brand-600 px-4">
       <form
         onSubmit={handleSubmit}

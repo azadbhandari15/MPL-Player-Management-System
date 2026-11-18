@@ -13,30 +13,38 @@ export function AuthProvider({ children }) {
     setToken(null);
   }, []);
 
-  // Any 401 from the API logs the admin out locally
-  useEffect(() => setUnauthorizedHandler(clearSession), [clearSession]);
+  // Automatically log out locally whenever the backend returns 401
+  useEffect(() => {
+    setUnauthorizedHandler(clearSession);
+  }, [clearSession]);
 
   async function login(username, password) {
     const data = await api(EP.login, {
       method: "POST",
       body: { username, password },
-      publicCall: true,
     });
-    tokenStore.set(data.token);
-    setToken(data.token);
+
+    const receivedToken = typeof data === "string" ? data : data?.token;
+    if (!receivedToken) {
+      throw new Error("Token missing in login response");
+    }
+
+    tokenStore.set(receivedToken);
+    setToken(receivedToken);
   }
 
   async function logout() {
     try {
       await api(EP.logout, { method: "POST" });
     } catch {
-      /* log out locally even if the server call fails */
+      /* Clear local session even if server logout fails */
+    } finally {
+      clearSession();
     }
-    clearSession();
   }
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated: !!token, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated: Boolean(token), login, logout }}>
       {children}
     </AuthContext.Provider>
   );
