@@ -4,7 +4,7 @@ const TOKEN_KEY="mpl_admin_key";
 
 export const tokenStore={
     get:()=>sessionStorage.getItem(TOKEN_KEY),
-    set:(t)=>sessionStorage.setItem(t),
+    set:(t)=>sessionStorage.setItem(TOKEN_KEY,t),
     clear:()=>sessionStorage.removeItem(TOKEN_KEY)
 };
 
@@ -33,16 +33,14 @@ export async function api(path, {method="GET",body}={}){
         throw new Error("Session Expired. Please log in again");
     }
 
-    if(!res.ok){
-        let message;
-        try{
-            message = (await res.json())?.message;
-        }catch{
+    const text = await res.text();
+  let data = null;
+  try {
+    data = text ? JSON.parse(text) : null;
+  } catch {
+    /* non-JSON body */
+  }
 
-        }
-
-        throw new Error(message || `Request Failed (${res.status})`)
-    }
-
-    return res.status === 204 ? null :res.json();
+  if (!res.ok) throw new Error(data?.message || `Request failed (${res.status})`);
+  return data;
 }

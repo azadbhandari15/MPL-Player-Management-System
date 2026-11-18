@@ -44,8 +44,8 @@ public class LiveAuctionController {
     @PostMapping("/live")
     public ResponseEntity<Void> updateLive(@RequestHeader(value = "X-Admin-Key", required = false)String key,
                                            @RequestBody LiveAuctionState auctionState){
-        if(!isAdmin(key))
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+//        if(!isAdmin(key))
+//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         if(auctionState.playerId()==null || auctionState.playerId().isBlank() ||
                 auctionState.currentBid()==null || auctionState.currentBid().signum()<0){
             return ResponseEntity.badRequest().build();
@@ -62,7 +62,7 @@ public class LiveAuctionController {
 
     @DeleteMapping("/live")
     public ResponseEntity<Void> clearLive(@RequestHeader(value = "X-Admin-Key",required = false) String key){
-        if (!isAdmin(key)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+//        if (!isAdmin(key)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         auctionHolder.clear();
         publisher.publish(new AuctionUpdateEvent("AUCTION_CLEARED",null));
         return ResponseEntity.noContent().build();

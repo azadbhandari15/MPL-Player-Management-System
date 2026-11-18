@@ -3,8 +3,9 @@ import { useAuth } from "../auth/AuthContext";
 
 const LINKS = [
   { label: "Dashboard", to: "/" },
-  { label: "Live Auction", to: "/auction" },
+  { label: "Teams", to: "/teams" },
   { label: "Players", to: "/players" },
+  { label: "Live Auction", to: "/auction" },
 ];
 
 export default function AdminLayout() {
