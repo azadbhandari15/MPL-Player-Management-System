@@ -16,7 +16,7 @@ public class PlayerRegistrationResponseDtoMapper {
                 .cricHerosProfile(playerRegistrationEntity.getCricHerosProfile())
                 .registrationStatus(playerRegistrationEntity.getRegistrationStatus())
                 .playerId(playerRegistrationEntity.getPlayerId())
-                .imageUrl("/mpl/players/"+playerRegistrationEntity.getPlayerId()+"/image")
+                .imageUrl(playerRegistrationEntity.getImageUrl())
                 .build();
     }
 }

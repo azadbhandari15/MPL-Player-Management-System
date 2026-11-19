@@ -34,11 +34,11 @@ public class PlayerRegistrationController {
         this.playerDetailsRetrievalService = playerDetailsRetrievalService;
     }
 
-    @PostMapping(value = "/register-player",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<PlayerRegistrationResponseDto> registerPlayerRegistration(@RequestPart("playerInfo") PlayerRegistrationRequestDto playerRegistrationRequestDto,
-                                                                                    @RequestPart(value = "playerImage",required = false) MultipartFile multipartFile) throws Exception{
-        return ResponseEntity.ok(playerRegistrationService.registerMPLPlayer(playerRegistrationRequestDto,multipartFile));
-    }
+//    @PostMapping(value = "/register-player",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+//    public ResponseEntity<PlayerRegistrationResponseDto> registerPlayerRegistration(@RequestPart("playerInfo") PlayerRegistrationRequestDto playerRegistrationRequestDto,
+//                                                                                    @RequestPart(value = "playerImage",required = false) MultipartFile multipartFile) throws Exception{
+//        return ResponseEntity.ok(playerRegistrationService.registerMPLPlayer(playerRegistrationRequestDto,multipartFile));
+//    }
 
     @GetMapping("/search")
     public ResponseEntity<List<PlayerRegistrationResponseDto>> retrievePlayerEntries(@RequestParam(value = "keyword") String keyword){
@@ -51,11 +51,7 @@ public class PlayerRegistrationController {
                 playerRegistrationRequestDto.getPlayerRegistrationStatus()));
     }
 
-    @GetMapping("/{playerId}/image")
-    public ResponseEntity<byte[]> retrievePlayerImage(@PathVariable String playerId){
-        PlayerRegistrationEntity playerRegistrationEntity = playerRegistrationService.retrievePlayerImage(playerId);
-        return ResponseEntity.ok().contentType(MediaType.parseMediaType(playerRegistrationEntity.getImageType())).body(playerRegistrationEntity.getImageData());
-    }
+
 
     @GetMapping("/next-player")
     public ResponseEntity<PlayerRegistrationResponseDto> findNextEligiblePlayer(){

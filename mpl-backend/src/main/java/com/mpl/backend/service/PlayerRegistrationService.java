@@ -30,36 +30,36 @@ public class PlayerRegistrationService {
     }
 
 
-    public PlayerRegistrationResponseDto registerMPLPlayer(PlayerRegistrationRequestDto playerRegistrationRequestDto,
-                                                           MultipartFile multipartFile) throws IOException{
-        try {
-            logger.info("Starting Registration Process player : {}",playerRegistrationRequestDto);
-            PlayerRegistrationEntity playerRegistrationEntity=createPlayerRegistrationEntry(playerRegistrationRequestDto,multipartFile);
-            playerRegistrationRepository.save(playerRegistrationEntity);
-            return playerRegistrationResponseDtoMapper.mapToPlayerRegistrationDto(playerRegistrationEntity);
-        }catch (Exception e){
-            logger.error("An Error Occurred while registration of player :{}",e.getMessage());
-            throw e;
-        }
-    }
+//    public PlayerRegistrationResponseDto registerMPLPlayer(PlayerRegistrationRequestDto playerRegistrationRequestDto,
+//                                                           MultipartFile multipartFile) throws IOException{
+//        try {
+//            logger.info("Starting Registration Process player : {}",playerRegistrationRequestDto);
+//            PlayerRegistrationEntity playerRegistrationEntity=createPlayerRegistrationEntry(playerRegistrationRequestDto,multipartFile);
+//            playerRegistrationRepository.save(playerRegistrationEntity);
+//            return playerRegistrationResponseDtoMapper.mapToPlayerRegistrationDto(playerRegistrationEntity);
+//        }catch (Exception e){
+//            logger.error("An Error Occurred while registration of player :{}",e.getMessage());
+//            throw e;
+//        }
+//    }
 
-    public PlayerRegistrationEntity createPlayerRegistrationEntry(PlayerRegistrationRequestDto playerRegistrationRequestDto,
-                                                                  MultipartFile multipartFile) throws IOException {
-
-        return PlayerRegistrationEntity.builder()
-                .playerName(playerRegistrationRequestDto.getPlayerName())
-                .contactNumber(playerRegistrationRequestDto.getContactNumber())
-                .playerEmail(playerRegistrationRequestDto.getPlayerEmail())
-                .playerType(playerRegistrationRequestDto.getPlayerType())
-                .cricHerosProfile(playerRegistrationRequestDto.getCricHerosProfile())
-                .registrationStatus(PlayerRegistrationStatus.REGISTERED)
-                .imageName(multipartFile.getOriginalFilename())
-                .imageType(multipartFile.getContentType())
-                .imageData(multipartFile.getBytes())
-                .playerId(generatePlayerName(playerRegistrationRequestDto.getPlayerName()))
-                .build();
-
-    }
+//    public PlayerRegistrationEntity createPlayerRegistrationEntry(PlayerRegistrationRequestDto playerRegistrationRequestDto,
+//                                                                  MultipartFile multipartFile) throws IOException {
+//
+//        return PlayerRegistrationEntity.builder()
+//                .playerName(playerRegistrationRequestDto.getPlayerName())
+//                .contactNumber(playerRegistrationRequestDto.getContactNumber())
+//                .playerEmail(playerRegistrationRequestDto.getPlayerEmail())
+//                .playerType(playerRegistrationRequestDto.getPlayerType())
+//                .cricHerosProfile(playerRegistrationRequestDto.getCricHerosProfile())
+//                .registrationStatus(PlayerRegistrationStatus.REGISTERED)
+//                .imageName(multipartFile.getOriginalFilename())
+//                .imageType(multipartFile.getContentType())
+//                .imageData(multipartFile.getBytes())
+//                .playerId(generatePlayerName(playerRegistrationRequestDto.getPlayerName()))
+//                .build();
+//
+//    }
 
     public List<PlayerRegistrationResponseDto> updatePlayerStatus(List<String> playerId,PlayerRegistrationStatus playerRegistrationStatus){
         List<PlayerRegistrationEntity> existingPlayerId = playerRegistrationRepository.findPlayerIds(playerId);
@@ -70,15 +70,15 @@ public class PlayerRegistrationService {
         return savedPlayerRegistrationEntity.stream().map(playerRegistrationResponseDtoMapper::mapToPlayerRegistrationDto).toList();
     }
 
-    public PlayerRegistrationEntity retrievePlayerImage(String playerId){
-        PlayerRegistrationEntity playerRegistrationEntity = playerRegistrationRepository.findByPlayerId(playerId)
-                .orElseThrow(() -> new RuntimeException("Player Details Not Found"));
-        byte[] imageData = playerRegistrationEntity.getImageData();
-        if(imageData==null){
-            throw new RuntimeException("Image Details not found");
-        }
-        return playerRegistrationEntity;
-    }
+//    public PlayerRegistrationEntity retrievePlayerImage(String playerId){
+//        PlayerRegistrationEntity playerRegistrationEntity = playerRegistrationRepository.findByPlayerId(playerId)
+//                .orElseThrow(() -> new RuntimeException("Player Details Not Found"));
+//        byte[] imageData = playerRegistrationEntity.getImageData();
+//        if(imageData==null){
+//            throw new RuntimeException("Image Details not found");
+//        }
+//        return playerRegistrationEntity;
+//    }
 
     public PlayerRegistrationResponseDto retrieveRandomPlayer(){
         return playerRegistrationRepository.findRandomEligiblePlayer(PlayerRegistrationStatus.ELIGIBLE_FOR_AUCTION.name())

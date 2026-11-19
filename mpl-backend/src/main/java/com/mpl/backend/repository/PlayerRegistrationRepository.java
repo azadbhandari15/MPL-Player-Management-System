@@ -29,5 +29,7 @@ public interface PlayerRegistrationRepository extends JpaRepository<PlayerRegist
 
     Page<PlayerRegistrationEntity> findByRegistrationStatus(PlayerRegistrationStatus playerRegistrationStatus, Pageable pageable);
     List<PlayerRegistrationEntity> findByRegistrationStatus(PlayerRegistrationStatus playerRegistrationStatus);
+    Optional<PlayerRegistrationEntity> findByContactNumber(String contactNumber);
+    List<PlayerRegistrationEntity> findByPlayerNameIgnoreCase(String playerName);
 
 }
