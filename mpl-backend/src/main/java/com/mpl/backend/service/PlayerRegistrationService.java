@@ -13,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -81,9 +82,17 @@ public class PlayerRegistrationService {
 //    }
 
     public PlayerRegistrationResponseDto retrieveRandomPlayer(){
-        return playerRegistrationRepository.findRandomEligiblePlayer(PlayerRegistrationStatus.ELIGIBLE_FOR_AUCTION.name())
+        Optional<PlayerRegistrationEntity> eligibleForAuction =playerRegistrationRepository.findRandomEligiblePlayer(PlayerRegistrationStatus.ELIGIBLE_FOR_AUCTION.name());
+        if(eligibleForAuction.isPresent()) {
+            return eligibleForAuction.map(playerRegistrationResponseDtoMapper::mapToPlayerRegistrationDto)
+                    .orElseThrow(() -> new RuntimeException("No Eligible Players Are there for Auction"));
+        }
+
+        return playerRegistrationRepository.findRandomEligiblePlayer(PlayerRegistrationStatus.UNSOLD.name())
                 .map(playerRegistrationResponseDtoMapper::mapToPlayerRegistrationDto)
                 .orElseThrow(() -> new RuntimeException("No Eligible Players Are there for Auction"));
+
+
     }
 
     public List<PlayerRegistrationResponseDto> retrievePlayerDetails(String keyword){

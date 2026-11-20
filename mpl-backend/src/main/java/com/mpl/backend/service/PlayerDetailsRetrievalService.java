@@ -28,7 +28,7 @@ public class PlayerDetailsRetrievalService {
     }
 
     public Page<PlayerRegistrationResponseDto> findAllPlayers(Pageable pageable){
-        return playerRegistrationRepository.findByRegistrationStatus(PlayerRegistrationStatus.ELIGIBLE_FOR_AUCTION,pageable)
+        return playerRegistrationRepository.findAll(pageable)
                 .map(playerRegistrationResponseDtoMapper::mapToPlayerRegistrationDto);
 
     }

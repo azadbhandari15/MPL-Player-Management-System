@@ -3,19 +3,24 @@ package com.mpl.backend.service;
 import com.mpl.backend.entity.PlayerRegistrationEntity;
 import com.mpl.backend.entity.PlayerRegistrationStatus;
 import com.mpl.backend.entity.PlayerType;
+import com.mpl.backend.entity.TeamOwnerEntity;
 import com.mpl.backend.model.PlayerImportResult;
 import com.mpl.backend.repository.PlayerRegistrationRepository;
+import com.mpl.backend.repository.TeamOwnerRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -23,9 +28,13 @@ public class PlayerImportService {
 
     private static final Pattern DRIVE_ID = Pattern.compile("(?:id=|/d/)([A-Za-z0-9_-]{10,})");
     private static final Pattern URL = Pattern.compile("https?://\\S+");
-    private static final String ID_PREFIX = "MPL4-";     // adjust to your player id format
+    private static final String ID_PREFIX = "MPL4-";
+    private final TeamOwnerRepository teamOwnerRepository;// adjust to your player id format
 
     private final PlayerRegistrationRepository repo;
+
+    @Value("${mpl.owner.initial.purse.amount:10000}")
+    private BigDecimal initialPurseAmount;
 
     @Transactional
     public PlayerImportResult replaceAll(MultipartFile file, boolean dryRun) throws IOException {
@@ -33,6 +42,11 @@ public class PlayerImportService {
         if (file.isEmpty() || !fname.endsWith(".xlsx")) {
             throw new IllegalArgumentException("Please upload an .xlsx file");
         }
+
+        Set<TeamOwnerEntity> refactoredOwner = teamOwnerRepository.findAll().stream().peek(team -> team.setBudgetRemaining(initialPurseAmount))
+                .collect(Collectors.toSet());
+
+        teamOwnerRepository.saveAll(refactoredOwner);
 
         List<String> errors = new ArrayList<>();
         List<PlayerRegistrationEntity> players = new ArrayList<>();
@@ -94,6 +108,8 @@ public class PlayerImportService {
             repo.deleteAllInBatch();      // wipe previous entries
             repo.saveAll(players);        // persist new ones (same transaction)
         }
+
+
         return new PlayerImportResult(dryRun, total, players.size(), existing, apply, errors);
     }
 
