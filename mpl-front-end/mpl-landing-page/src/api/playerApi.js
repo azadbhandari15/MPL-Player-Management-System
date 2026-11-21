@@ -1,6 +1,6 @@
-const BASE_URL="http://localhost:8080/mpl/players";
+const BASE_URL="https://mpl-player-management-system.onrender.com/mpl/players";
 
-const API_ORIGIN = "http://localhost:8080";
+const API_ORIGIN = "https://mpl-player-management-system.onrender.com/";
 
 export const imageSrc = (imageUrl) =>
   imageUrl ? `${API_ORIGIN}${imageUrl}` : null;

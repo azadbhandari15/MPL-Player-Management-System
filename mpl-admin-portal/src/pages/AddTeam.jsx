@@ -4,7 +4,14 @@ import { api } from "../api/client";
 import { EP } from "../api/endpoints";
 import { formatPts } from "../utils/format";
 
-const EMPTY = { ownerName: "", ownerContactNumber: "", ownerEmailId: "", teamName: "" };
+const EMPTY = {
+  ownerName: "",
+  ownerContactNumber: "",
+  teamName: "",
+  coOwnerExists: false,
+  coOwnerName: "",
+  coOwnerContactNumber: "",
+};
 
 export default function AddTeam() {
   const [form, setForm] = useState(EMPTY);
@@ -13,6 +20,16 @@ export default function AddTeam() {
   const [created, setCreated] = useState(null);
 
   const set = (name) => (e) => setForm((f) => ({ ...f, [name]: e.target.value }));
+
+  const toggleCoOwner = (e) => {
+    const checked = e.target.checked;
+    setForm((f) => ({
+      ...f,
+      coOwnerExists: checked,
+      // Clear co-owner fields if unchecked
+      ...(checked ? {} : { coOwnerName: "", coOwnerContactNumber: "" }),
+    }));
+  };
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -25,8 +42,10 @@ export default function AddTeam() {
         body: {
           ownerName: form.ownerName.trim(),
           ownerContactNumber: form.ownerContactNumber.trim(),
-          ownerEmailId: form.ownerEmailId.trim(),
           teamName: form.teamName.trim(),
+          coOwnerExists: form.coOwnerExists,
+          coOwnerName: form.coOwnerExists ? form.coOwnerName.trim() : null,
+          coOwnerContactNumber: form.coOwnerExists ? form.coOwnerContactNumber.trim() : null,
         },
       });
       setCreated(res);
@@ -49,6 +68,9 @@ export default function AddTeam() {
           <h1 className="mt-3 text-2xl font-bold">Team Created</h1>
           <p className="mt-4 text-lg font-semibold text-brand-700">{created.teamName}</p>
           <p className="text-sm text-neutral-600">Owner: {created.ownerName}</p>
+          {created.coOwnerExists && created.coOwnerName && (
+            <p className="text-sm text-neutral-600">Co-Owner: {created.coOwnerName}</p>
+          )}
           <p className="mt-4 text-xs uppercase tracking-widest text-neutral-500">Owner ID</p>
           <p className="rounded-lg bg-white px-4 py-2 font-bold tracking-wider text-brand-700">
             {created.ownerRegistrationId}
@@ -88,7 +110,37 @@ export default function AddTeam() {
         <input className={input} placeholder="Team name" required value={form.teamName} onChange={set("teamName")} />
         <input className={input} placeholder="Owner name" required value={form.ownerName} onChange={set("ownerName")} />
         <input className={input} type="tel" placeholder="Owner phone (+91...)" required value={form.ownerContactNumber} onChange={set("ownerContactNumber")} />
-        <input className={input} type="email" placeholder="Owner email" required value={form.ownerEmailId} onChange={set("ownerEmailId")} />
+
+        <label className="flex cursor-pointer items-center gap-2.5 select-none text-sm font-medium text-neutral-700">
+          <input
+            type="checkbox"
+            checked={form.coOwnerExists}
+            onChange={toggleCoOwner}
+            className="h-4 w-4 rounded border-neutral-300 text-brand-600 focus:ring-brand-500"
+          />
+          Co-owner exists
+        </label>
+
+        {form.coOwnerExists && (
+          <>
+            <input
+              className={input}
+              placeholder="Co-owner name"
+              required
+              value={form.coOwnerName}
+              onChange={set("coOwnerName")}
+            />
+            <input
+              className={input}
+              type="tel"
+              placeholder="Co-owner phone (+91...)"
+              required
+              value={form.coOwnerContactNumber}
+              onChange={set("coOwnerContactNumber")}
+            />
+          </>
+        )}
+
         {error && <p className="text-sm text-red-600">{error}</p>}
         <button
           type="submit"

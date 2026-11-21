@@ -1,4 +1,4 @@
-const API_ORIGIN="http://localhost:8080";
+const API_ORIGIN="https://mpl-player-management-system.onrender.com";
 
 export const imageSrc=(url)=>(url?`${API_ORIGIN}${url}`:null);
 

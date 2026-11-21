@@ -90,11 +90,26 @@ export default function Teams() {
                   {d?.error && <p className="text-red-600">{d.error}</p>}
                   {d?.data && (
                     <>
-                      <p className="text-sm text-neutral-600">
-                        Owner: <b>{d.data.ownerName}</b> · {d.data.ownerContactNumber} ·{" "}
-                        {d.data.ownerEmailId}
-                      </p>
-                      <h3 className="mt-4 text-sm font-semibold uppercase tracking-widest text-neutral-500">
+                      <div className="flex flex-col gap-2">
+                        <p className="rounded-xl bg-white px-4 py-2.5 text-sm text-neutral-600">
+                          <span className="inline-block w-20 font-medium text-neutral-500">
+                            Owner:
+                          </span>
+                          <b>{d.data.ownerName}</b> · {d.data.ownerContactNumber} 
+                        </p>
+
+                        {(d.data.coOwnerName || d.data.coOwnerContactNumber) && (
+                          <p className="rounded-xl bg-white px-4 py-2.5 text-sm text-neutral-600">
+                            <span className="inline-block w-20 font-medium text-neutral-500">
+                              Co-Owner:
+                            </span>
+                            <b>{d.data.coOwnerName}</b>
+                            {d.data.coOwnerContactNumber && ` · ${d.data.coOwnerContactNumber}`}
+                          </p>
+                        )}
+                      </div>
+
+                      <h3 className="mt-5 text-sm font-semibold uppercase tracking-widest text-neutral-500">
                         Players bought ({players.length})
                       </h3>
                       {players.length === 0 ? (

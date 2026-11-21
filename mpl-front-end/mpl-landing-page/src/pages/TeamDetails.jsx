@@ -26,8 +26,6 @@ export default function TeamDetails() {
     fetchOwnerDetails(ownerId)
       .then((data) => {
         if (cancelled) return;
-         console.log("owner data:", data);
-        console.log("first player:", data.players?.[0]);
         setOwner(data);
         setStatus("success");
       })
@@ -79,6 +77,8 @@ export default function TeamDetails() {
                 <Info label="Owner ID" value={owner.ownerRegistrationId ?? ownerId} />
                 <Info label="Contact" value={owner.ownerContactNumber} />
                 <Info label="Email" value={owner.ownerEmailId} />
+                <Info label="Co-Owner Name" value={owner.coOwnerName} />
+                <Info label="Co-Owner Contact" value={owner.coOwnerContactNumber} />
                 <Info
                   label="Available Purse"
                   value={owner.availablePurse != null ? formatPurse(owner.availablePurse) : undefined}
