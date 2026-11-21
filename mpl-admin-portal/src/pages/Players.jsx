@@ -2,22 +2,87 @@ import { useEffect, useMemo, useState } from "react";
 import { api } from "../api/client";
 import { EP } from "../api/endpoints";
 import { imageSrc } from "../utils/format";
+import UploadPlayers from "../components/UploadPlayers.jsx";
 
 const PAGE_SIZE = 20;
+// const APPS_SCRIPT_URL =
+//   "https://script.google.com/macros/s/AKfycby5Er7QtQfOQ8fJLHW97oIrNkRUjbnDZykYUM2SsGaKO1iOoqy7-ABReClOzhv-e7UN/exec";
+
+const APPS_SCRIPT_URL = "/drive-proxy";
+// Cache resolved Drive data URIs across pagination and re-renders
+const driveImageCache = new Map();
 
 function Avatar({ url, name }) {
+  const isDriveUrl = typeof url === "string" && url.includes("drive.google.com");
+
+  const [resolvedSrc, setResolvedSrc] = useState(() => {
+    if (!url) return null;
+    if (!isDriveUrl) return imageSrc(url);
+    return driveImageCache.get(url) ?? null;
+  });
   const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    setFailed(false);
+
+    if (!url) {
+      setResolvedSrc(null);
+      return;
+    }
+
+    if (!isDriveUrl) {
+      setResolvedSrc(imageSrc(url));
+      return;
+    }
+
+    if (driveImageCache.has(url)) {
+      setResolvedSrc(driveImageCache.get(url));
+      return;
+    }
+
+    let isMounted = true;
+    setResolvedSrc(null);
+
+    fetch(`${APPS_SCRIPT_URL}?url=${encodeURIComponent(url)}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (!isMounted) return;
+        if (data.error || !data.url) {
+          setFailed(true);
+        } else {
+          driveImageCache.set(url, data.url);
+          setResolvedSrc(data.url);
+        }
+      })
+      .catch(() => {
+        if (isMounted) setFailed(true);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [url, isDriveUrl]);
+
   if (!url || failed) {
     return (
-      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-neutral-100">🏏</div>
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-neutral-100">
+        🏏
+      </div>
     );
   }
+
+  if (!resolvedSrc) {
+    return (
+      <div className="h-10 w-10 shrink-0 animate-pulse rounded-full bg-neutral-200" />
+    );
+  }
+
   return (
     <img
-      src={imageSrc(url)}
+      src={resolvedSrc}
       alt={name}
       onError={() => setFailed(true)}
-      className="h-10 w-10 rounded-full border border-neutral-200 object-cover"
+      className="h-10 w-10 shrink-0 rounded-full border border-neutral-200 object-cover"
     />
   );
 }
@@ -67,6 +132,11 @@ export default function Players() {
     return matchesQuery && matchesStatus;
   });
 
+  const reloadFromStart = () => {
+    setPage(0);
+    setAttempt((a) => a + 1);
+  };
+
   return (
     <div>
       <h1 className="text-3xl font-bold">
@@ -95,6 +165,8 @@ export default function Players() {
           ))}
         </select>
       </div>
+
+      <UploadPlayers onDone={reloadFromStart} />
 
       {status === "loading" && <p className="mt-10 text-neutral-500">Loading players...</p>}
 

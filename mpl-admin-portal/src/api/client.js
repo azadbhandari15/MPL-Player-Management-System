@@ -1,4 +1,4 @@
-const BASE_URL = "http://localhost:8080";
+const BASE_URL = "https://mpl-player-management-system.onrender.com";
 const TOKEN_KEY = "mpl_admin_key";
 
 export const tokenStore = {
@@ -12,15 +12,16 @@ export const setUnauthorizedHandler = (fn) => (onUnauthorized = fn);
 
 export async function api(path, { method = "GET", body } = {}) {
   const token = tokenStore.get();
+  const isForm = body instanceof FormData;   // multipart upload: let the browser set Content-Type
   let res;
   try {
     res = await fetch(`${BASE_URL}${path}`, {
       method,
       headers: {
-        ...(body ? { "Content-Type": "application/json" } : {}),
+        ...(body && !isForm ? { "Content-Type": "application/json" } : {}),
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
-      body: body ? JSON.stringify(body) : undefined,
+      body: body ? (isForm ? body : JSON.stringify(body)) : undefined,
     });
   } catch {
     throw new Error("Connection Problem. Please try again later.");

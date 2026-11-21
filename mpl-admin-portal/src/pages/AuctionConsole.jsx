@@ -4,6 +4,11 @@ import { EP } from "../api/endpoints";
 import { formatPts, imageSrc } from "../utils/format";
 
 const STORAGE_KEY = "mpl_live_auction";
+const APPS_SCRIPT_URL = "/drive-proxy";
+const BASE_BID = 200;
+
+// Cache resolved Drive data URIs so re-renders or moving from candidate -> live won't re-fetch
+const driveImageCache = new Map();
 
 function loadSaved() {
   try {
@@ -25,35 +30,103 @@ function toPublicState(live) {
   };
 }
 
-function Photo({ url, name }) {
+function getNextBid(live) {
+  if (!live) return 0;
+  if (!live.highestTeam) return live.currentBid;
+  const increment = live.currentBid >= 3000 ? 200 : 100;
+  return live.currentBid + increment;
+}
+
+function Photo({ url, name, className = "w-28 sm:w-44" }) {
+  const isDriveUrl = typeof url === "string" && url.includes("drive.google.com");
+
+  const [resolvedSrc, setResolvedSrc] = useState(() => {
+    if (!url) return null;
+    if (!isDriveUrl) return imageSrc(url);
+    return driveImageCache.get(url) ?? null;
+  });
   const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    setFailed(false);
+
+    if (!url) {
+      setResolvedSrc(null);
+      return;
+    }
+
+    if (!isDriveUrl) {
+      setResolvedSrc(imageSrc(url));
+      return;
+    }
+
+    if (driveImageCache.has(url)) {
+      setResolvedSrc(driveImageCache.get(url));
+      return;
+    }
+
+    let isMounted = true;
+    setResolvedSrc(null);
+
+    fetch(`${APPS_SCRIPT_URL}?url=${encodeURIComponent(url)}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (!isMounted) return;
+        if (data.error || !data.url) {
+          setFailed(true);
+        } else {
+          driveImageCache.set(url, data.url);
+          setResolvedSrc(data.url);
+        }
+      })
+      .catch(() => {
+        if (isMounted) setFailed(true);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [url, isDriveUrl]);
+
   if (!url || failed) {
     return (
-      <div className="flex h-28 w-28 items-center justify-center rounded-full border-4 border-brand-500 bg-neutral-100 text-4xl">
+      <div
+        className={`flex shrink-0 items-center justify-center bg-neutral-100 text-3xl sm:text-5xl ${className}`}
+      >
         🏏
       </div>
     );
   }
+
+  if (!resolvedSrc) {
+    return (
+      <div
+        className={`flex shrink-0 animate-pulse items-center justify-center bg-neutral-200 text-xs font-medium text-neutral-500 ${className}`}
+      >
+        Loading...
+      </div>
+    );
+  }
+
   return (
     <img
-      src={imageSrc(url)}
+      src={resolvedSrc}
       alt={name}
       onError={() => setFailed(true)}
-      className="h-28 w-28 rounded-full border-4 border-brand-500 object-cover"
+      className={`shrink-0 object-cover object-top ${className}`}
     />
   );
 }
 
 export default function AuctionConsole() {
   const [teams, setTeams] = useState([]);
-  const [players, setPlayers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
 
   const [live, setLive] = useState(loadSaved); // { player, currentBid, highestTeam, history }
-  const [selectedId, setSelectedId] = useState("");
-  const [baseBid, setBaseBid] = useState(100);
-  const [step, setStep] = useState(50);
+  const [candidate, setCandidate] = useState(null); // randomly drawn player, not yet live
+  const [drawing, setDrawing] = useState(false);
+  const [noPlayersAvailable, setNoPlayersAvailable] = useState(false);
 
   const [busy, setBusy] = useState(false);
   const [syncError, setSyncError] = useState(false);
@@ -63,9 +136,7 @@ export default function AuctionConsole() {
     setLoading(true);
     setLoadError("");
     try {
-      const [t, p] = await Promise.all([api(EP.teams), api(`${EP.players}?page=0&size=500`)]);
-      setTeams(t);
-      setPlayers((p.content ?? []).filter((x) => x.registrationStatus !== "SOLD"));
+      setTeams(await api(EP.teams));
     } catch (e) {
       setLoadError(e.message);
     } finally {
@@ -98,14 +169,78 @@ export default function AuctionConsole() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const nextBid = live ? (live.highestTeam ? live.currentBid + Number(step) : live.currentBid) : 0;
+  const nextBid = getNextBid(live);
+
+  async function markPlayerUnsold(playerId) {
+    return api(EP.bidPlayer, {
+      method: "POST",
+      body: {
+        playerId,
+        ownerId: null,
+        auctionStatus: "UNSOLD",
+        auctionSoldAmount: null,
+      },
+    });
+  }
+
+  async function drawPlayer() {
+    if (drawing) return;
+    setDrawing(true);
+    setNotice(null);
+    setNoPlayersAvailable(false);
+    try {
+      const p = await api(EP.nextPlayer);
+      if (!p?.playerId) {
+        setCandidate(null);
+        setNoPlayersAvailable(true);
+      } else {
+        setCandidate(p);
+      }
+    } catch (e) {
+      setCandidate(null);
+      if (e.status === 404 || /not found|no eligible/i.test(e.message)) {
+        setNoPlayersAvailable(true);
+      } else {
+        setNotice({ type: "error", text: e.message });
+      }
+    } finally {
+      setDrawing(false);
+    }
+  }
+
+  async function skipCandidate() {
+    if (drawing || !candidate) return;
+    setDrawing(true);
+    setNotice(null);
+    setNoPlayersAvailable(false);
+    try {
+      await markPlayerUnsold(candidate.playerId);
+      const p = await api(EP.nextPlayer);
+      if (!p?.playerId) {
+        setCandidate(null);
+        setNoPlayersAvailable(true);
+      } else {
+        setCandidate(p);
+      }
+    } catch (e) {
+      setCandidate(null);
+      if (e.status === 404 || /not found|no eligible/i.test(e.message)) {
+        setNoPlayersAvailable(true);
+      } else {
+        setNotice({ type: "error", text: e.message });
+      }
+    } finally {
+      setDrawing(false);
+    }
+  }
 
   function startAuction() {
-    const player = players.find((p) => p.playerId === selectedId);
-    if (!player || !(Number(baseBid) > 0)) return;
-    const next = { player, currentBid: Number(baseBid), highestTeam: null, history: [] };
+    if (!candidate) return;
+    const next = { player: candidate, currentBid: BASE_BID, highestTeam: null, history: [] };
     setNotice(null);
+    setNoPlayersAvailable(false);
     setLive(next);
+    setCandidate(null);
     pushLive(next);
   }
 
@@ -154,9 +289,7 @@ export default function AuctionConsole() {
         type: "success",
         text: `${res?.playerName ?? player.playerName} sold to ${res?.teamName ?? highestTeam.teamName} for ${formatPts(res?.bidAmount ?? currentBid)}`,
       });
-      setPlayers((ps) => ps.filter((p) => p.playerId !== player.playerId));
       setLive(null);
-      setSelectedId("");
       api(EP.liveAuction, { method: "DELETE" }).catch(() => {}); // make sure the public screen clears
       api(EP.teams).then(setTeams).catch(() => {}); // refresh purses
     } catch (e) {
@@ -167,30 +300,40 @@ export default function AuctionConsole() {
   }
 
   async function stopAuction() {
-    if (busy || !window.confirm("Stop bidding for this player without selling?")) return;
+    if (busy || !window.confirm("Stop bidding for this player and mark as unsold?")) return;
+    const { player } = live;
     setBusy(true);
+    setNotice(null);
     try {
-      await api(EP.liveAuction, { method: "DELETE" });
-      setSyncError(false);
-    } catch {
-      setNotice({ type: "error", text: "The public screen could not be cleared. Try again." });
+      const res = await markPlayerUnsold(player.playerId);
+      setNotice({
+        type: "success",
+        text: `${res?.playerName ?? player.playerName} marked as UNSOLD`,
+      });
+      try {
+        await api(EP.liveAuction, { method: "DELETE" });
+        setSyncError(false);
+      } catch {
+        setSyncError(true);
+      }
+      setLive(null);
+    } catch (e) {
+      setNotice({ type: "error", text: e.message });
+    } finally {
+      setBusy(false);
     }
-    setLive(null);
-    setBusy(false);
   }
 
-  const input =
-    "rounded-lg border border-neutral-300 bg-white px-4 py-2.5 outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-500/30";
-
   return (
-    <div>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-3xl font-bold">
+    <div className="mx-auto flex w-full max-w-7xl flex-col">
+      {/* Header */}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h1 className="text-xl font-bold sm:text-2xl">
           Live <span className="text-brand-600">Auction</span>
         </h1>
         {live && (
           <span
-            className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-widest ${
+            className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest sm:px-3 sm:py-1 sm:text-xs ${
               syncError ? "bg-red-100 text-red-700" : "bg-brand-100 text-brand-700"
             }`}
           >
@@ -201,7 +344,7 @@ export default function AuctionConsole() {
 
       {notice && (
         <div
-          className={`mt-6 rounded-xl border px-4 py-3 text-sm font-medium ${
+          className={`mt-2 rounded-lg border px-3 py-1.5 text-xs font-medium sm:mt-3 sm:px-4 sm:py-2.5 sm:text-sm ${
             notice.type === "success"
               ? "border-brand-100 bg-brand-50 text-brand-700"
               : "border-red-200 bg-red-50 text-red-700"
@@ -211,13 +354,13 @@ export default function AuctionConsole() {
         </div>
       )}
 
-      {loading && <p className="mt-10 text-neutral-500">Loading...</p>}
+      {loading && <p className="mt-4 text-sm text-neutral-500">Loading...</p>}
       {loadError && (
-        <div className="mt-10">
-          <p className="text-red-600">{loadError}</p>
+        <div className="mt-4">
+          <p className="text-sm text-red-600">{loadError}</p>
           <button
             onClick={loadData}
-            className="mt-3 rounded-full bg-brand-600 px-5 py-2 text-sm font-semibold text-white hover:bg-brand-700"
+            className="mt-2 rounded-full bg-brand-600 px-5 py-2 text-xs font-semibold text-white hover:bg-brand-700"
           >
             Retry
           </button>
@@ -226,135 +369,177 @@ export default function AuctionConsole() {
 
       {/* Start panel */}
       {!loading && !loadError && !live && (
-        <section className="mt-8 max-w-xl rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-bold">Start auction for a player</h2>
-          <p className="text-sm text-neutral-500">{players.length} players available</p>
-
-          <div className="mt-4 flex flex-col gap-4">
-            <select value={selectedId} onChange={(e) => setSelectedId(e.target.value)} className={input}>
-              <option value="">Select a player...</option>
-              {players.map((p) => (
-                <option key={p.playerId} value={p.playerId}>
-                  {p.playerName} · {p.playerType?.replace("_", " ")} · {p.playerId}
-                </option>
-              ))}
-            </select>
-
-            <div className="grid grid-cols-2 gap-4">
-              <label className="text-sm text-neutral-600">
-                Base price (pts)
-                <input type="number" min="1" value={baseBid} onChange={(e) => setBaseBid(e.target.value)} className={`${input} mt-1 w-full`} />
-              </label>
-              <label className="text-sm text-neutral-600">
-                Bid step (pts)
-                <input type="number" min="1" value={step} onChange={(e) => setStep(e.target.value)} className={`${input} mt-1 w-full`} />
-              </label>
-            </div>
-
-            <button
-              onClick={startAuction}
-              disabled={!selectedId || !(Number(baseBid) > 0) || !(Number(step) > 0)}
-              className="rounded-full bg-brand-600 px-6 py-3 font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
-            >
-              Start Auction
-            </button>
+        <section className="mt-3 max-w-3xl rounded-2xl border border-neutral-200 bg-white p-3.5 shadow-sm sm:mt-5 sm:p-6">
+          <div className="flex items-baseline justify-between">
+            <h2 className="text-base font-bold sm:text-xl">Next player</h2>
+            <p className="hidden text-sm text-neutral-500 sm:block">
+              Base price {formatPts(BASE_BID)} · +100 below 3,000, +200 from 3,000+
+            </p>
           </div>
+
+          {!candidate ? (
+            <div className="mt-3 sm:mt-4">
+              {noPlayersAvailable && (
+                <p className="mb-3 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm font-medium text-neutral-600">
+                  No player available for Auction
+                </p>
+              )}
+              <button
+                onClick={drawPlayer}
+                disabled={drawing}
+                className="w-full rounded-full bg-brand-600 px-6 py-3 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50 sm:w-auto sm:px-7 sm:py-3 sm:text-base"
+              >
+                {drawing ? "Drawing..." : "🎲 Draw random player"}
+              </button>
+            </div>
+          ) : (
+            <div className="mt-3 flex flex-col gap-3 sm:mt-4 sm:gap-4">
+              <div className="flex flex-row items-stretch overflow-hidden rounded-xl border border-brand-100 bg-brand-50/50 sm:min-h-[180px] sm:rounded-2xl">
+                <Photo
+                  url={candidate.imageUrl}
+                  name={candidate.playerName}
+                  className="w-28 sm:w-48"
+                />
+                <div className="flex flex-col justify-center p-3 sm:p-6">
+                  <h3 className="text-base font-bold leading-tight sm:text-2xl">
+                    {candidate.playerName}
+                  </h3>
+                  <span className="mt-1 inline-block w-fit rounded-full bg-brand-100 px-2.5 py-0.5 text-xs font-semibold text-brand-700 sm:mt-2 sm:px-3 sm:py-1 sm:text-sm">
+                    {candidate.playerType?.replace("_", " ")}
+                  </span>
+                  <p className="mt-1 text-[11px] text-neutral-500 sm:mt-2 sm:text-sm">
+                    {candidate.playerId} · Base {formatPts(BASE_BID)}
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-3">
+                <button
+                  onClick={startAuction}
+                  className="rounded-full bg-brand-600 px-4 py-2.5 text-xs font-semibold text-white hover:bg-brand-700 sm:px-7 sm:py-2.5 sm:text-sm"
+                >
+                  Start Auction
+                </button>
+                <button
+                  onClick={skipCandidate}
+                  disabled={drawing}
+                  className="rounded-full border border-neutral-300 px-4 py-2.5 text-xs font-medium hover:border-brand-600 hover:text-brand-600 disabled:opacity-40 sm:px-6 sm:py-2.5 sm:text-sm"
+                >
+                  {drawing ? "Skipping..." : "Skip / draw again"}
+                </button>
+              </div>
+            </div>
+          )}
         </section>
       )}
 
       {/* Live panel */}
       {live && (
         <>
-          <section className="mt-8 rounded-2xl border border-brand-100 bg-brand-50/50 p-6">
-            <div className="flex flex-wrap items-center gap-6">
-              <Photo url={live.player.imageUrl} name={live.player.playerName} />
-              <div className="flex-1">
-                <p className="text-xs uppercase tracking-widest text-neutral-500">Now bidding</p>
-                <h2 className="text-3xl font-bold">{live.player.playerName}</h2>
-                <span className="mt-2 inline-block rounded-full bg-brand-100 px-3 py-1 text-sm font-semibold text-brand-700">
-                  {live.player.playerType?.replace("_", " ")}
-                </span>
+          <section className="mt-2.5 flex flex-row items-stretch overflow-hidden rounded-2xl border border-brand-100 bg-brand-50/50 shadow-sm sm:mt-3">
+            <Photo
+              url={live.player.imageUrl}
+              name={live.player.playerName}
+              className="w-24 sm:w-44 lg:w-52"
+            />
+            <div className="flex flex-1 flex-col justify-between p-3 sm:px-6 sm:py-4">
+              <div className="flex items-start justify-between gap-2 sm:gap-6">
+                <div className="min-w-0">
+                  <p className="text-[10px] font-medium uppercase tracking-widest text-neutral-500 sm:text-xs">
+                    Now bidding
+                  </p>
+                  <h2 className="truncate text-base font-bold leading-tight sm:text-2xl lg:text-3xl">
+                    {live.player.playerName}
+                  </h2>
+                  <span className="mt-1 inline-block rounded-full bg-brand-100 px-2 py-0.5 text-[11px] font-semibold text-brand-700 sm:mt-1.5 sm:px-3 sm:py-0.5 sm:text-xs">
+                    {live.player.playerType?.replace("_", " ")}
+                  </span>
+                </div>
+                <div className="shrink-0 text-right">
+                  <p className="text-[10px] font-medium uppercase tracking-widest text-neutral-500 sm:text-xs">
+                    Current bid
+                  </p>
+                  <p className="text-xl font-bold text-brand-600 sm:text-3xl lg:text-4xl">
+                    {formatPts(live.currentBid)}
+                  </p>
+                  <p className="mt-0.5 text-[11px] text-neutral-600 sm:mt-1 sm:text-sm">
+                    {live.highestTeam ? (
+                      <>
+                        Highest: <b>{live.highestTeam.teamName}</b>
+                      </>
+                    ) : (
+                      "No bids yet"
+                    )}
+                  </p>
+                </div>
               </div>
-              <div className="text-right">
-                <p className="text-xs uppercase tracking-widest text-neutral-500">Current bid</p>
-                <p className="text-4xl font-bold text-brand-600">{formatPts(live.currentBid)}</p>
-                <p className="mt-1 text-sm text-neutral-600">
-                  {live.highestTeam ? (
-                    <>
-                      Highest: <b>{live.highestTeam.teamName}</b>
-                    </>
-                  ) : (
-                    "No bids yet"
-                  )}
-                </p>
-              </div>
-            </div>
 
-            <div className="mt-6 flex flex-wrap gap-3">
-              <button
-                onClick={markSold}
-                disabled={!live.highestTeam || busy}
-                className="rounded-full bg-brand-600 px-6 py-2.5 font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
-              >
-                {busy ? "Working..." : "Mark Sold"}
-              </button>
-              <button
-                onClick={undoBid}
-                disabled={live.history.length === 0 || busy}
-                className="rounded-full border border-neutral-300 px-5 py-2.5 text-sm hover:border-brand-600 hover:text-brand-600 disabled:opacity-40"
-              >
-                Undo last bid
-              </button>
-              <button
-                onClick={stopAuction}
-                disabled={busy}
-                className="rounded-full border border-red-300 px-5 py-2.5 text-sm text-red-600 hover:bg-red-50 disabled:opacity-40"
-              >
-                Stop (not sold)
-              </button>
-              {syncError && (
+              <div className="mt-2.5 grid grid-cols-3 gap-1.5 sm:mt-4 sm:flex sm:flex-wrap sm:gap-2.5">
                 <button
-                  onClick={() => pushLive(live)}
-                  className="rounded-full border border-neutral-300 px-5 py-2.5 text-sm hover:border-brand-600 hover:text-brand-600"
+                  onClick={markSold}
+                  disabled={!live.highestTeam || busy}
+                  className="rounded-full bg-brand-600 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-brand-700 disabled:opacity-50 sm:px-6 sm:py-2 sm:text-sm"
                 >
-                  Re-sync public screen
+                  {busy ? "..." : "Mark Sold"}
                 </button>
-              )}
+                <button
+                  onClick={undoBid}
+                  disabled={live.history.length === 0 || busy}
+                  className="rounded-full border border-neutral-300 px-2.5 py-1.5 text-[11px] font-medium hover:border-brand-600 hover:text-brand-600 disabled:opacity-40 sm:px-4 sm:py-2 sm:text-sm"
+                >
+                  Undo
+                </button>
+                <button
+                  onClick={stopAuction}
+                  disabled={busy}
+                  className="rounded-full border border-red-300 px-2.5 py-1.5 text-[11px] font-medium text-red-600 hover:bg-red-50 disabled:opacity-40 sm:px-4 sm:py-2 sm:text-sm"
+                >
+                  Unsold
+                </button>
+                {syncError && (
+                  <button
+                    onClick={() => pushLive(live)}
+                    className="col-span-3 rounded-full border border-neutral-300 px-3 py-1 text-[11px] font-medium hover:border-brand-600 hover:text-brand-600 sm:px-4 sm:py-2 sm:text-sm"
+                  >
+                    Re-sync public screen
+                  </button>
+                )}
+              </div>
             </div>
           </section>
 
-          <section className="mt-8">
-            <h2 className="text-lg font-bold">
+          <section className="mt-3 sm:mt-4">
+            <h2 className="text-sm font-bold sm:text-base">
               Teams <span className="font-normal text-neutral-400">· next bid {formatPts(nextBid)}</span>
             </h2>
-            <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="mt-2 grid grid-cols-2 gap-2 sm:mt-2.5 sm:grid-cols-3 sm:gap-3 md:grid-cols-4 lg:grid-cols-5">
               {teams.map((t) => {
                 const isHighest = live.highestTeam?.ownerRegistrationId === t.ownerRegistrationId;
                 const canAfford = Number(t.availablePurse) >= nextBid;
                 return (
                   <div
                     key={t.ownerRegistrationId}
-                    className={`rounded-2xl border bg-white p-5 shadow-sm ${
+                    className={`rounded-xl border bg-white p-2.5 shadow-sm sm:p-3 ${
                       isHighest ? "border-brand-600 ring-2 ring-brand-500/30" : "border-neutral-200"
                     }`}
                   >
-                    <div className="flex items-start justify-between">
-                      <h3 className="font-bold">{t.teamName}</h3>
+                    <div className="flex items-center justify-between gap-1">
+                      <h3 className="truncate text-xs font-bold sm:text-sm">{t.teamName}</h3>
                       {isHighest && (
-                        <span className="rounded-full bg-brand-600 px-2 py-0.5 text-xs font-semibold text-white">
+                        <span className="shrink-0 rounded-full bg-brand-600 px-1.5 py-0.5 text-[10px] font-semibold text-white">
                           Highest
                         </span>
                       )}
                     </div>
-                    <p className="mt-1 text-sm text-neutral-500">
+                    <p className="mt-0.5 text-[11px] text-neutral-500 sm:text-xs">
                       Purse: <b className="text-neutral-800">{formatPts(t.availablePurse)}</b>
                     </p>
                     <button
                       onClick={() => placeBid(t)}
                       disabled={isHighest || !canAfford || busy}
-                      className="mt-4 w-full rounded-full bg-black px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-40"
+                      className="mt-2 w-full rounded-full bg-black px-2.5 py-1.5 text-xs font-semibold text-white transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-40 sm:mt-2.5 sm:py-1.5 sm:text-xs"
                     >
-                      {isHighest ? "Leading" : canAfford ? `Bid ${formatPts(nextBid)}` : "Not enough purse"}
+                      {isHighest ? "Leading" : canAfford ? `Bid ${formatPts(nextBid)}` : "No purse"}
                     </button>
                   </div>
                 );

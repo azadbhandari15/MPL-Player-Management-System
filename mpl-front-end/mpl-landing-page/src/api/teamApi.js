@@ -1,4 +1,4 @@
-const BASE_URL="http://localhost:8080/mpl/owner";
+const BASE_URL="https://mpl-player-management-system.onrender.com//mpl/owner";
 
 async function request(url){
     let res;

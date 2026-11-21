@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-const BASE="http://localhost:8080/mpl/auction";
+const BASE="https://mpl-player-management-system.onrender.com/mpl/auction";
 
 export function useLiveAuction(onEvent){
     const [state,setState]=useState(null);
