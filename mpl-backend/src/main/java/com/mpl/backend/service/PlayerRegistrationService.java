@@ -1,5 +1,6 @@
 package com.mpl.backend.service;
 
+import com.mpl.backend.EligibilePlayerNotFoundException;
 import com.mpl.backend.entity.PlayerRegistrationEntity;
 import com.mpl.backend.entity.PlayerRegistrationStatus;
 import com.mpl.backend.mapper.PlayerRegistrationResponseDtoMapper;
@@ -90,7 +91,7 @@ public class PlayerRegistrationService {
 
         return playerRegistrationRepository.findRandomEligiblePlayer(PlayerRegistrationStatus.UNSOLD.name())
                 .map(playerRegistrationResponseDtoMapper::mapToPlayerRegistrationDto)
-                .orElseThrow(() -> new RuntimeException("No Eligible Players Are there for Auction"));
+                .orElseThrow(() -> new EligibilePlayerNotFoundException("No Eligible Players Are there for Auction"));
 
 
     }
