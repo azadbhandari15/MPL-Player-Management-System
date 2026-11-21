@@ -86,7 +86,7 @@ public class PlayerRegistrationService {
         Optional<PlayerRegistrationEntity> eligibleForAuction =playerRegistrationRepository.findRandomEligiblePlayer(PlayerRegistrationStatus.ELIGIBLE_FOR_AUCTION.name());
         if(eligibleForAuction.isPresent()) {
             return eligibleForAuction.map(playerRegistrationResponseDtoMapper::mapToPlayerRegistrationDto)
-                    .orElseThrow(() -> new RuntimeException("No Eligible Players Are there for Auction"));
+                    .orElseThrow(() -> new EligibilePlayerNotFoundException("No Eligible Players Are there for Auction"));
         }
 
         return playerRegistrationRepository.findRandomEligiblePlayer(PlayerRegistrationStatus.UNSOLD.name())
