@@ -12,7 +12,7 @@ public interface TeamOwnerRepository extends JpaRepository<TeamOwnerEntity,Long>
 
     Optional<TeamOwnerEntity> findByOwnerRegistrationId(String ownerRegistrationId);
 
-    @Query("Select new com.mpl.backend.model.TeamBudgetResponseDto(o.teamName,o.budgetRemaining) " +
+    @Query("Select new com.mpl.backend.model.TeamBudgetResponseDto(o.ownerRegistrationId,o.teamName,o.budgetRemaining) " +
             "from TeamOwnerEntity o")
     List<TeamBudgetResponseDto> findTeamName();
 }

@@ -2,7 +2,7 @@ const HIGHLIGHTS=[
     {value:"2024",label:"Sigma Playboys Emerged as an Inaugral Champions"},
     {value:"Jan 2025",label:"Maqsad XI won Season 2"},
     {value:"Nov 2025", label:"Sam Ashrafi Defended his MPL title with Victory Fighters"},
-    {value:"Nov 2026",label:"Mini MPL will take place"}
+    {value:"Nov 2026",label:"MPL Season 4 will take place"}
 ]
 
 export default function Highlights(){

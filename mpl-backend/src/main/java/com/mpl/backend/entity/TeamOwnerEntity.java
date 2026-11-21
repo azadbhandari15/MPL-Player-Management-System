@@ -25,9 +25,11 @@ public class TeamOwnerEntity {
 
     private String ownerName;
     private String ownerContactNumber;
-    private String ownerEmailAddress;
     private String teamName;
     private String ownerRegistrationId;
+    private String coOwnerName;
+    private Boolean coOwnerExists;
+    private String coOwnerContactNumber;
     private BigDecimal budgetRemaining;
     @CreationTimestamp
     private LocalDateTime registeredDate;

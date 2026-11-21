@@ -1,4 +1,9 @@
-const BASE_URL="http://localhost/mpl/players";
+const BASE_URL="http://localhost:8080/mpl/players";
+
+const API_ORIGIN = "http://localhost:8080";
+
+export const imageSrc = (imageUrl) =>
+  imageUrl ? `${API_ORIGIN}${imageUrl}` : null;
 
 export class NetworkError extends Error {}
 

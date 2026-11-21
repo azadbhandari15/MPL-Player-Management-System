@@ -20,6 +20,7 @@ public class OwnerRegistrationResponseDto {
     private String ownerRegistrationId;
     private BigDecimal availablePurse;
     private LocalDateTime registrationDate;
-    private String ownerEmailId;
+    private String coOwnerName;
+    private String coOwnerContactNumber;
     private List<PlayerAuctionResponseDto>  players;
 }
