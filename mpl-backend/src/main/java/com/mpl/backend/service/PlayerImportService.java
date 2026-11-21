@@ -36,6 +36,9 @@ public class PlayerImportService {
     @Value("${mpl.owner.initial.purse.amount:10000}")
     private BigDecimal initialPurseAmount;
 
+    @Value("${mpl.owner.coowner.substraction.amount:2000}")
+    private BigDecimal coOwnerSubstractionAmount;
+
     @Transactional
     public PlayerImportResult replaceAll(MultipartFile file, boolean dryRun) throws IOException {
         String fname = Objects.requireNonNullElse(file.getOriginalFilename(), "").toLowerCase();
@@ -43,7 +46,14 @@ public class PlayerImportService {
             throw new IllegalArgumentException("Please upload an .xlsx file");
         }
 
-        Set<TeamOwnerEntity> refactoredOwner = teamOwnerRepository.findAll().stream().peek(team -> team.setBudgetRemaining(initialPurseAmount))
+        Set<TeamOwnerEntity> refactoredOwner = teamOwnerRepository.findAll().stream()
+                .peek(team -> {
+                    if (Boolean.TRUE.equals(team.getCoOwnerExists())) {
+                        team.setBudgetRemaining(initialPurseAmount.subtract(coOwnerSubstractionAmount));
+                    } else {
+                        team.setBudgetRemaining(initialPurseAmount);
+                    }
+                })
                 .collect(Collectors.toSet());
 
         teamOwnerRepository.saveAll(refactoredOwner);
@@ -54,9 +64,8 @@ public class PlayerImportService {
         int total = 0;
 
         try (Workbook wb = WorkbookFactory.create(file.getInputStream())) {
-            Sheet sheet = wb.getSheetAt(0);                       // "Form responses 1"
+            Sheet sheet = wb.getSheet("Auction Sheet");                       // "Form responses 1"
             Row header = sheet.getRow(0);
-            int tsCol    = findCol(header, "timestamp");
             int nameCol  = findCol(header, "player name");
             int phoneCol = findCol(header, "phone");
             int imgCol   = findCol(header, "player image");
@@ -74,9 +83,9 @@ public class PlayerImportService {
                 total++;
                 String label = "Row " + (i + 1) + " (" + name + ")";
 
-                if (name.isEmpty() || name.length() > 50) { errors.add(label + ": name missing or over 50 chars"); continue; }
-                if (phone.length() != 10)                 { errors.add(label + ": phone must be 10 digits"); continue; }
-                if (!seenPhones.add(phone))               { errors.add(label + ": duplicate phone " + phone); continue; }
+//                if (name.isEmpty() || name.length() > 50) { errors.add(label + ": name missing or over 50 chars"); continue; }
+//                if (phone.length() != 10)                 { errors.add(label + ": phone must be 10 digits"); continue; }
+//                if (!seenPhones.add(phone))               { errors.add(label + ": duplicate phone " + phone); continue; }
 
                 PlayerType type = parseType(fmt.formatCellValue(row.getCell(roleCol)));
                 if (type == null) { errors.add(label + ": unknown role"); continue; }
@@ -84,16 +93,18 @@ public class PlayerImportService {
                 String imageUrl = toDirectUrl(fmt.formatCellValue(row.getCell(imgCol)).trim());
                 if (imageUrl == null) { errors.add(label + ": image link missing/invalid"); continue; }
 
-                PlayerRegistrationEntity p = new PlayerRegistrationEntity();
-                p.setPlayerName(name);
-                p.setContactNumber(phone);
-                p.setPlayerType(type);
-                p.setCricHerosProfile(extractUrl(fmt.formatCellValue(row.getCell(chCol))));
-                p.setImageUrl(imageUrl);
-                p.setRegistrationStatus(PlayerRegistrationStatus.ELIGIBLE_FOR_AUCTION);            // anything except SOLD
-                p.setRegisteredDate(readDate(row.getCell(tsCol)));
-                p.setUpdatedDate(LocalDateTime.now());
-                players.add(p);
+                if(seenPhones.add(phone)) {
+                    PlayerRegistrationEntity p = new PlayerRegistrationEntity();
+                    p.setPlayerName(name);
+                    p.setContactNumber(phone);
+                    p.setPlayerType(type);
+                    p.setCricHerosProfile(extractUrl(fmt.formatCellValue(row.getCell(chCol))));
+                    p.setImageUrl(imageUrl);
+                    p.setRegistrationStatus(PlayerRegistrationStatus.ELIGIBLE_FOR_AUCTION);            // anything except SOLD
+                    p.setRegisteredDate(LocalDateTime.now());
+                    p.setUpdatedDate(LocalDateTime.now());
+                    players.add(p);
+                }
             }
         }
 

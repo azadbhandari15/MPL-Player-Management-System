@@ -22,6 +22,9 @@ public class OwnerRegistrationService {
     @Value("${mpl.owner.initial.purse.amount:10000}")
     private BigDecimal initialPurseAmount;
 
+    @Value("${mpl.owner.coowner.substraction.amount:2000}")
+    private BigDecimal coOwnerSubstractionAmount;
+
     private static final Logger logger= LoggerFactory.getLogger(OwnerRegistrationService.class);
     private final TeamOwnerRepository teamOwnerRepository;
 
@@ -32,13 +35,15 @@ public class OwnerRegistrationService {
     @Transactional
     public OwnerRegistrationResponseDto registerOwnerDetails(TeamOwnerRegistrationDetailsRequestDto registrationDetailsRequestDto){
         try {
+            BigDecimal purseAmount=Boolean.TRUE.equals(registrationDetailsRequestDto.getCoOwnerExists())? (initialPurseAmount.subtract(coOwnerSubstractionAmount)):initialPurseAmount;
             logger.info("Registering owner details: {}",registrationDetailsRequestDto);
             String ownerId = "MPL-OWNER-" + UUID.randomUUID().toString().substring(0, 6).toUpperCase();
             TeamOwnerEntity teamOwnerEntity=TeamOwnerEntity.builder().ownerRegistrationId(ownerId)
                     .ownerName(registrationDetailsRequestDto.getOwnerName())
                     .teamName(registrationDetailsRequestDto.getTeamName())
-                    .budgetRemaining(initialPurseAmount)
-                    .ownerEmailAddress(registrationDetailsRequestDto.getOwnerEmailId())
+                    .budgetRemaining(purseAmount)
+                    .coOwnerName(registrationDetailsRequestDto.getCoOwnerName())
+                    .coOwnerContactNumber(registrationDetailsRequestDto.getCoOwnerContactNumber())
                     .ownerContactNumber(registrationDetailsRequestDto.getOwnerContactNumber())
                     .build();
 
@@ -47,7 +52,6 @@ public class OwnerRegistrationService {
                     .ownerName(savedOwnerEntity.getOwnerName())
                     .ownerContactNumber(savedOwnerEntity.getOwnerContactNumber())
                     .teamName(savedOwnerEntity.getTeamName())
-                    .ownerEmailId(savedOwnerEntity.getOwnerEmailAddress())
                     .ownerRegistrationId(savedOwnerEntity.getOwnerRegistrationId())
                     .registrationDate(savedOwnerEntity.getRegisteredDate())
                     .availablePurse(savedOwnerEntity.getBudgetRemaining())
@@ -83,10 +87,11 @@ public class OwnerRegistrationService {
                 .ownerName(teamOwnerEntity.getOwnerName())
                 .ownerContactNumber(teamOwnerEntity.getOwnerContactNumber())
                 .teamName(teamOwnerEntity.getTeamName())
-                .ownerEmailId(teamOwnerEntity.getOwnerEmailAddress())
                 .ownerRegistrationId(teamOwnerEntity.getOwnerRegistrationId())
                 .registrationDate(teamOwnerEntity.getRegisteredDate())
                 .availablePurse(teamOwnerEntity.getBudgetRemaining())
+                .coOwnerContactNumber(teamOwnerEntity.getCoOwnerContactNumber())
+                .coOwnerName(teamOwnerEntity.getCoOwnerName())
                 .players(players)
                 .build();
     }

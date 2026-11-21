@@ -11,6 +11,8 @@ public class TeamOwnerRegistrationDetailsRequestDto {
 
     private String ownerName;
     private String ownerContactNumber;
-    private String ownerEmailId;
     private String teamName;
+    private Boolean coOwnerExists;
+    private String coOwnerName;
+    private String coOwnerContactNumber;
 }

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="[MPL-6]Add Column Names" author="Azad">
+        <preConditions onFail="MARK_RAN" onError="MARK_RAN">
+            <tableExists tableName="team_owner_details"/>
+            <not>
+                <columnExists tableName="co_owner_name" columnName="co_owner_name"/>
+                <columnExists tableName="co_owner_contact_number" columnName="co_owner_contact_number"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="team_owner_details">
+            <column name="co_owner_name" type="TEXT"/>
+            <column name="co_owner_contact_number" type="TEXT"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="[MPL-6]Add Column Names Co Owner Exists" author="Azad">
+        <preConditions onFail="MARK_RAN" onError="MARK_RAN">
+            <tableExists tableName="team_owner_details"/>
+            <not>
+                <columnExists tableName="team_owner_details" columnName="co_owner_exists"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="team_owner_details">
+            <column name="co_owner_exists" type="BOOLEAN" defaultValue="FALSE"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="[MPL-6]Remove Owner Email Details" author="Azad">
+        <preConditions onFail="MARK_RAN" onError="MARK_RAN">
+            <tableExists tableName="team_owner_details"/>
+                <columnExists tableName="team_owner_details" columnName="owner_email_address"/>
+            </preConditions>
+        <dropColumn tableName="team_owner_details" columnName="owner_email_address"/>
+    </changeSet>
+
+</databaseChangeLog>
