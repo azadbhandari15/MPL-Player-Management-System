@@ -70,7 +70,7 @@ public class PlayerImportService {
             int phoneCol = findCol(header, "phone");
             int imgCol   = findCol(header, "player image");
             int roleCol  = findCol(header, "player role");
-            int chCol    = findCol(header, "cric");
+            //int chCol    = findCol(header, "cric");
             DataFormatter fmt = new DataFormatter();
 
             for (int i = 1; i <= sheet.getLastRowNum(); i++) {
@@ -98,7 +98,7 @@ public class PlayerImportService {
                     p.setPlayerName(name);
                     p.setContactNumber(phone);
                     p.setPlayerType(type);
-                    p.setCricHerosProfile(extractUrl(fmt.formatCellValue(row.getCell(chCol))));
+                  //  p.setCricHerosProfile(extractUrl(fmt.formatCellValue(row.getCell(chCol))));
                     p.setImageUrl(imageUrl);
                     p.setRegistrationStatus(PlayerRegistrationStatus.ELIGIBLE_FOR_AUCTION);            // anything except SOLD
                     p.setRegisteredDate(LocalDateTime.now());
