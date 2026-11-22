@@ -45,6 +45,7 @@ public class OwnerRegistrationService {
                     .coOwnerName(registrationDetailsRequestDto.getCoOwnerName())
                     .coOwnerContactNumber(registrationDetailsRequestDto.getCoOwnerContactNumber())
                     .ownerContactNumber(registrationDetailsRequestDto.getOwnerContactNumber())
+                    .coOwnerExists(registrationDetailsRequestDto.getCoOwnerExists())
                     .build();
 
             TeamOwnerEntity savedOwnerEntity = teamOwnerRepository.save(teamOwnerEntity);
